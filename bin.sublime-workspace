@@ -1,0 +1,515 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"FIL",
+				"FILENAME"
+			],
+			[
+				"F",
+				"FULLFILEPATH"
+			],
+			[
+				"set",
+				"setupscratch"
+			],
+			[
+				"se",
+				"setupscratch"
+			],
+			[
+				"FILE",
+				"FILEPATH"
+			],
+			[
+				"SCRA",
+				"SCRATCH"
+			],
+			[
+				"decoe",
+				"decode(…)\tfunction ⟠"
+			],
+			[
+				"fig",
+				"fig"
+			],
+			[
+				"ax",
+				"ax"
+			],
+			[
+				"infie",
+				"infilelist"
+			],
+			[
+				"she",
+				"shell=True\t★ pro ⟠"
+			],
+			[
+				"fil",
+				"files2copy"
+			],
+			[
+				"rmg",
+				"rmg"
+			],
+			[
+				"pre",
+				"prefix"
+			],
+			[
+				"split",
+				"splitline"
+			],
+			[
+				"print",
+				"printstring\tstr ⟠"
+			],
+			[
+				"cpu",
+				"cpufreq()\tfunction ⟠"
+			],
+			[
+				"O",
+				"O"
+			],
+			[
+				"str",
+				"strip()\t★ ⟠"
+			],
+			[
+				"stdout",
+				"stdout.read()\t★ ⟠"
+			],
+			[
+				"string",
+				"string"
+			]
+		]
+	},
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/Conda/Conda.sublime-build",
+					""
+				],
+				[
+					"Packages/User/BuildSystems/wakaplots.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Conda/Conda.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"exe",
+				"Make file executable"
+			],
+			[
+				"rena",
+				"Rename File"
+			],
+			[
+				"renam",
+				"Rename File"
+			],
+			[
+				"ac",
+				"Conda: Activate Environment"
+			],
+			[
+				"conda",
+				"Conda: Activate Environment"
+			],
+			[
+				"exec",
+				"Make file executable"
+			],
+			[
+				"dele",
+				"File: Delete"
+			],
+			[
+				"wo",
+				"Word Wrap: Toggle"
+			],
+			[
+				"rename",
+				"Rename File"
+			],
+			[
+				"de",
+				"File: Delete"
+			],
+			[
+				"del",
+				"File: Delete"
+			],
+			[
+				"dup",
+				"File: Duplicate"
+			],
+			[
+				"conda u",
+				"Build With: Conda"
+			],
+			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Conda: Install Package"
+			],
+			[
+				"word",
+				"Word Wrap: Toggle"
+			],
+			[
+				"acti",
+				"Conda: Activate Environment"
+			],
+			[
+				"conda bui",
+				"Build With: Conda"
+			],
+			[
+				"wrap",
+				"Word Wrap: Toggle"
+			],
+			[
+				"wra",
+				"Word Wrap: Toggle"
+			],
+			[
+				"buil",
+				"Build With: Conda"
+			],
+			[
+				"con",
+				"Conda: Activate Environment"
+			],
+			[
+				"delet",
+				"File: Delete"
+			],
+			[
+				"bash",
+				"Set Syntax: Bourne Again Shell (bash)"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/data/MonARCH/gaussian_test/gaussian_test.gjf",
+		"/data/MonARCH/gaussian_test/gaussian_test.slm",
+		"/home/adrea/.shell.pre-oh-my-zsh",
+		"/data/MonARCH/home/.zshrc",
+		"/data/MonARCH/Grand_Challenges/aq/S1aq.slm",
+		"/data/MonARCH/home/bin/2slm.sh",
+		"/home/adrea/.config/Typora/conf/conf.user.json",
+		"/data/MonARCH/Grand_Challenges/aq/S1aq/S1aq.xyz",
+		"/data/MonARCH/Grand_Challenges/aq/S1aq.inp",
+		"/data/MonARCH/Grand_Challenges/aq/S2aq.inp",
+		"/data/MonARCH/Grand_Challenges/aq/S4aq.inp",
+		"/data/MonARCH/scratch/S4aq/S4aq_trj.xyz",
+		"/data/MonARCH/Grand_Challenges/aq/S3aq.inp",
+		"/data/MonARCH/scratch/S3aq/S3aq_trj.xyz",
+		"/data/MonARCH/scratch/S2aq/S2aq_trj.xyz",
+		"/data/MonARCH/test/testg.slm",
+		"/data/MonARCH/test/testo.slm",
+		"/data/MonARCH/test/testg.out",
+		"/data/MonARCH/test/testp.slm",
+		"/data/MonARCH/home/bin/orca2slm.sh",
+		"/data/MonARCH/home/bin/psi42slm.sh",
+		"/data/MonARCH/home/bin/gjf2slm.sh",
+		"/data/MonARCH/test/testo/testo.inp",
+		"/data/MonARCH/test/testp.out",
+		"/data/MonARCH/test/testp/testp.out",
+		"/data/MonARCH/S4il-g5shift.slm",
+		"/data/MonARCH/benzene-Ni.slm",
+		"/data/MonARCH/benzene-low.slm",
+		"/data/MonARCH/benzene-low.in",
+		"/data/Computation/Scripts/chkoptenergy.py",
+		"/data/MonARCH/home/bin/chkoptprogress.sh",
+		"/home/adrea/Downloads/Week 5.html",
+		"/home/adrea/gdrive/Journal/mkdocs.yml",
+		"/home/adrea/.config/Typora/themes/pixyll-custom.css",
+		"/home/adrea/numpy-site.cfg",
+		"/home/adrea/.sudo_as_admin_successful",
+		"/home/adrea/.local/share/applications/filemanager-adrea.desktop",
+		"/home/adrea/.local/share/applications/deepin-terminal.desktop",
+		"/data/Computation/Scratch/GQL_93a/T_KBR.LOG",
+		"/data/Computation/Scripts/conky/conkygov.sh",
+		"/backup/timeshift/snapshots/2020-09-03_13-27-00/localhost/home/adrea/.zsh_history",
+		"/home/adrea/miniconda3/share/jupyter/lab/extensions/jupyterlab-theme-monokai-gravity-1.0.0/package/style/variables.css",
+		"/backup/timeshift/snapshots/2020-09-03_13-27-00/localhost/home/adrea/.xmodmap",
+		"/home/adrea/.conkyrc",
+		"/home/adrea/gmount/Backup/Rosalind/etc stuff/logid.cfg",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.copy.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrla1.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlb.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlc14.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrld.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrle.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlf.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlg.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlh.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrli.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlj.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlk.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrll.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlm.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrln.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlo.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlp.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlq.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlr.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrls.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlt.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlu.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlv.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlw.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlx.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrly.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys1/.ctrlz.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.copy.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlb.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrla1.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlc14.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrld.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrle.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlf.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlg.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlh.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrli.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlj.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlk.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrll.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlm.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrln.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlo.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlp.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlq.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlr.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrly.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlz.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.paste.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlx.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlw.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlv.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrls.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlt.json",
+		"/home/adrea/.config/autokey/data/Deepin Hotkeys/.ctrlu.json",
+		"/home/adrea/.config/autokey/data/Gnome Terminal Hotkeys/.copy.json",
+		"/home/adrea/.config/autokey/data/Gnome Terminal Hotkeys/ctrld.py",
+		"/home/adrea/.config/deepin/deepin-terminal/themes/Adrea",
+		"/home/adrea/.hyper.js",
+		"/data/MonARCH/home/bin/chkoptprogress.py",
+		"/home/adrea/gdrive/Backup/Rosalind/logid.cfg",
+		"/home/adrea/Downloads/fileroller_servicemenu.desktop",
+		"/home/adrea/.cache/.fr-59SQSe/file-roller-based/readme.txt",
+		"/home/adrea/Downloads/fileroller_addtoservicemenu.desktop",
+		"/data/Computation/Scripts/conky/reloadconky.sh",
+		"/data/Computation/Scripts/conky/conkyfreq.py",
+		"/home/adrea/.local/share/applications/GaussView (copy 1).desktop",
+		"/usr/share/applications/thunar.desktop",
+		"/home/adrea/.local/share/applications/avogadro2.desktop",
+		"/data/MonARCH/Grand_Challenges/aq/S2aq/S2aq.xyz",
+		"/home/adrea/Downloads/test.xyz",
+		"/data/Computation/Scripts/duet.sh",
+		"/data/Computation/Scripts/mountserver.sh",
+		"/home/adrea/.zshrc",
+		"/data/Computation/Scripts/updatecompiled.sh",
+		"/data/MonARCH/Grand_Challenges/aq/S1aq/S1aq.out",
+		"/home/adrea/.gdfuse/default/config",
+		"/home/adrea/gdrive/Swinburne/Bachelor of Science/Semester 7/NPS30003/Project/Report/introduction.tex",
+		"/opt/thefanclub/overgrive/client_secrets.json",
+		"/home/adrea/.config/autostart/overgrive-autostart.desktop",
+		"/home/adrea/.config/Trolltech/Designer.conf",
+		"/home/adrea/gdrive/Backup/Lise/Catalina Backup/texlive.sh",
+		"/home/adrea/Downloads/VNC-Server-6.7.2-Linux-x64/vncinstall"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 205.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"hours",
+			"$OPTARG",
+			">>",
+			";;\n",
+			">>",
+			"home",
+			"HOME",
+			"adreas",
+			"time",
+			"TIME",
+			"time",
+			"TIME",
+			"time",
+			"TIME",
+			"time",
+			"TIME",
+			"$OPTARG;;",
+			"FILE",
+			"\n\t\t;;",
+			")\n\t\t"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 71.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.diagnostics":
+	{
+		"height": 0.0
+	},
+	"output.exec":
+	{
+		"height": 195.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 213.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

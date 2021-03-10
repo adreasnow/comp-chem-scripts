@@ -69,7 +69,6 @@ copyscratch() {
 }
 
 copyfiles() {
-	echo "test1"
 	for var in ${files2copy[@]}; do
 		COPYFILEPATH=`readlink -f $var`
 		echo "cp \"$COPYFILEPATH\" \"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
@@ -129,7 +128,7 @@ for var in $@
 			PROCS=`cat "$FULLFILEPATH" | grep nprocs | xargs | cut -d' ' -f2`
 			MEM=`cat "$FULLFILEPATH" | grep maxcore | cut -d' ' -f2`
 			MEM=$(($MEM * $PROCS))
-			MEM=`echo $MEM | python -c "print(round(float(input())/1024))"`
+			MEM=`echo $MEM | python -c "print(int(round(float(input())/1024)))"`
 			FILENAME=`/bin/basename -s .inp "$FULLFILEPATH"`
 			;;
 		"gaussian")
