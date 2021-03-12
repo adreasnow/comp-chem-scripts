@@ -1,4 +1,5 @@
 #!/bin/bash
+DIR=`pwd`
 print_usage() {
 	echo """
 	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN] -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -C [FILE1] -C [FILE2] [INPUT FILES]...
@@ -43,6 +44,8 @@ print_usage() {
 	  -t this flag tells the ccript to 'touch' the log file. 
 	    this forces the script to make sure that the logfile exists before the slurm job is run
 
+	  -S Submits job via SLURM
+
 	###########################################################################
 	  This script creates a file structure from the current directory like this
 
@@ -84,9 +87,10 @@ copyfiles() {
 	email="false"
 	qos="none"
 	short="false"
+	submit="false"
 	touchfile="false"
 
-while getopts 'h:m:n:c:p:d:t:C:seq:' flag "${@}"; do
+while getopts 'h:m:n:c:p:d:t:C:sSeq:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -97,6 +101,7 @@ while getopts 'h:m:n:c:p:d:t:C:seq:' flag "${@}"; do
 	e) email="true";;
 	q) qos="$OPTARG";;
 	s) short="true";;
+	S) submit="true";;
 	t) touchfile="true";;
 	C) files2copy+=($OPTARG);;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
@@ -296,5 +301,11 @@ for var in $@
 		fi
 
 		~/bin/dos2unix "$FILEPATH/$FILENAME.slm"
+
+		if [[ $submit == "true" ]]; then
+			cd "$FILEPATH"
+			sbatch "$FILEPATH/$FILENAME.slm"
+			cd "$DIR"
+		fi
 	fi
 done
