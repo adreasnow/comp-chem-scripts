@@ -125,6 +125,18 @@
 		"selected_items":
 		[
 			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"add",
+				"Git: Add All"
+			],
+			[
 				"exe",
 				"Make file executable"
 			],
@@ -376,7 +388,7 @@
 	],
 	"find":
 	{
-		"height": 26.0
+		"height": 29.0
 	},
 	"find_in_files":
 	{
@@ -426,7 +438,7 @@
 	},
 	"incremental_find":
 	{
-		"height": 26.0
+		"height": 29.0
 	},
 	"input":
 	{
@@ -467,10 +479,14 @@
 	{
 		"height": 0.0
 	},
+	"output.git":
+	{
+		"height": 149.0
+	},
 	"pinned_build_system": "",
 	"replace":
 	{
-		"height": 48.0
+		"height": 54.0
 	},
 	"save_all_on_build": true,
 	"select_file":

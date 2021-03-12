@@ -46,6 +46,8 @@ print_usage() {
 
 	  -S Submits job via SLURM
 
+	  -D SLURM dependency ('-d afterany:<JOBID>')
+
 	###########################################################################
 	  This script creates a file structure from the current directory like this
 
@@ -89,8 +91,9 @@ copyfiles() {
 	short="false"
 	submit="false"
 	touchfile="false"
+	depjob="false"
 
-while getopts 'h:m:n:c:p:d:t:C:sSeq:' flag "${@}"; do
+while getopts 'h:m:n:c:p:d:t:C:D:sSeq:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -103,6 +106,7 @@ while getopts 'h:m:n:c:p:d:t:C:sSeq:' flag "${@}"; do
 	s) short="true";;
 	S) submit="true";;
 	t) touchfile="true";;
+	D) depends="$OPTARG"; depjob="true";;
 	C) files2copy+=($OPTARG);;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
 	\?) echo "unknown option -$OPTARG"; print_usage; exit 1;;
@@ -302,9 +306,13 @@ for var in $@
 
 		~/bin/dos2unix "$FILEPATH/$FILENAME.slm"
 
+		if [[ $depjob == "true" ]]; then
+			depcommand="-d afterany:${depends}"
+		fi
+
 		if [[ $submit == "true" ]]; then
 			cd "$FILEPATH"
-			sbatch "$FILEPATH/$FILENAME.slm"
+			sbatch $depcommand "$FILEPATH/$FILENAME.slm"
 			cd "$DIR"
 		fi
 	fi
