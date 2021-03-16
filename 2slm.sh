@@ -2,14 +2,14 @@
 DIR=`pwd`
 print_usage() {
 	echo """
-	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN] -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -C [FILE1] -C [FILE2] [INPUT FILES]...
+	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN] -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -C [FILE1] -C [FILE2] -D [JOBID] [INPUT FILES]...
 
 	Arguments
 	  [FILE] the files to be converted into slurm fils
 
 	MANDATORY ###############################################################
 		 --if no time flag is set, the script will defalt to 24 hours--
-		                    --only use one fo these--
+		                    --only use one of these--
 
 	  -d days allowed for the job to run. 
 	    if more granularity is needed, then use -h
@@ -47,6 +47,8 @@ print_usage() {
 	  -S Submits job via SLURM
 
 	  -D SLURM dependency ('-d afterany:<JOBID>')
+
+	  -P works from project directory instead of scratch (ORCA and Psi4 only)
 
 	###########################################################################
 	  This script creates a file structure from the current directory like this
@@ -92,8 +94,9 @@ copyfiles() {
 	submit="false"
 	touchfile="false"
 	depjob="false"
+	projectdir="false"
 
-while getopts 'h:m:n:c:p:d:t:C:D:sSeq:' flag "${@}"; do
+while getopts 'h:m:n:c:p:d:t:C:D:sSePq:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -108,6 +111,7 @@ while getopts 'h:m:n:c:p:d:t:C:D:sSeq:' flag "${@}"; do
 	t) touchfile="true";;
 	D) depends="$OPTARG"; depjob="true";;
 	C) files2copy+=($OPTARG);;
+	P) projectdir="true";;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
 	\?) echo "unknown option -$OPTARG"; print_usage; exit 1;;
 	*) print_usage; exit 0;;
@@ -262,22 +266,34 @@ for var in $@
 		case $inp in
 		"psi4")
 			echo "module load psi4/v1.3.2"														>> "$FILEPATH/$FILENAME.slm"
-			echo "export PSI_SCRATCH=\"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
 			echo "export PSIPATH=\$PSIPATH:$HOMEPATH/basis-sets/psi4"							>> "$FILEPATH/$FILENAME.slm"
-			setupscratch
-			copyfiles
-			echo "psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"					>> "$FILEPATH/$FILENAME.slm"
-			copyscratch
 
+			if [[ $projectdir == "true" ]]; then
+				echo "export PSI_SCRATCH=\"$FILEPATH/$FILENAME\""								>> "$FILEPATH/$FILENAME.slm"
+				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
+				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "psi4 -i \"$FILENAME.in\" -o \"$FILENAME.out\" 2>&1"						>> "$FILEPATH/$FILENAME.slm"
+			else
+				echo "export PSI_SCRATCH=\"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
+				setupscratch
+				copyfiles
+				echo "psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"					>> "$FILEPATH/$FILENAME.slm"
+				copyscratch
+			fi
 			;;
 		"orca")
 			echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
 			echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
-			setupscratch	
-			copyfiles
-			echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"		>> "$FILEPATH/$FILENAME.slm"
-			copyscratch
-
+			if [[ $projectdir == "true" ]]; then
+				echo "mkdir \"FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "cd \"FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+			else
+				setupscratch	
+				copyfiles
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"		>> "$FILEPATH/$FILENAME.slm"
+				copyscratch
+			fi
 			;;
 	
 		# "gaussian")
