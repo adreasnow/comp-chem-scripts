@@ -285,8 +285,8 @@ for var in $@
 			echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
 			echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
 			if [[ $projectdir == "true" ]]; then
-				echo "mkdir \"FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
-				echo "cd \"FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "mkdir \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 			else
 				setupscratch	

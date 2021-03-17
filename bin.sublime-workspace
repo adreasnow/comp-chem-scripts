@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"in",
+				"instead of\t⟠"
+			],
+			[
 				"any",
 				"afterany"
 			],
@@ -131,6 +135,14 @@
 			[
 				"push",
 				"Git: Push"
+			],
+			[
+				"commi",
+				"Git: Commit"
+			],
+			[
+				"all",
+				"Git: Add All"
 			],
 			[
 				"comm",
@@ -261,6 +273,7 @@
 	},
 	"file_history":
 	[
+		"/data/MonARCH/home/bin/.gitignore",
 		"/data/MonARCH/gaussian_test/gaussian_test.gjf",
 		"/data/MonARCH/gaussian_test/gaussian_test.slm",
 		"/home/adrea/.shell.pre-oh-my-zsh",
@@ -387,8 +400,7 @@
 		"/opt/thefanclub/overgrive/client_secrets.json",
 		"/home/adrea/.config/autostart/overgrive-autostart.desktop",
 		"/home/adrea/.config/Trolltech/Designer.conf",
-		"/home/adrea/gdrive/Backup/Lise/Catalina Backup/texlive.sh",
-		"/home/adrea/Downloads/VNC-Server-6.7.2-Linux-x64/vncinstall"
+		"/home/adrea/gdrive/Backup/Lise/Catalina Backup/texlive.sh"
 	],
 	"find":
 	{
