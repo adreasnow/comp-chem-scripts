@@ -2,7 +2,9 @@
 DIR=`pwd`
 print_usage() {
 	echo """
-	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN] -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -C [FILE1] -C [FILE2] -D [JOBID] [INPUT FILES]...
+	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN]
+	  -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -N -C [FILE1]
+	  -C [FILE2] -D [JOBID] [INPUT FILES]...
 
 	Arguments
 	  [FILE] the files to be converted into slurm fils
@@ -50,6 +52,15 @@ print_usage() {
 
 	  -P works from project directory instead of scratch (ORCA and Psi4 only)
 
+	  -N (notify) This is an advanced feature that allows you to creat a webhook input at ifttt.com
+	    and will send a request with the values 
+	      - value1:job name
+	      - value2:status (submitted/running/finished)
+	      - value3:tail of log file where value2=status
+	    This requires two environment variables (exported from your .rc file)
+	      - JOBID which is the name of the ifttt webhook
+	      - JOBKEY which contains your API key
+
 	###########################################################################
 	  This script creates a file structure from the current directory like this
 
@@ -82,6 +93,45 @@ copyfiles() {
 	done
 }
 
+notifysubmit() {
+	echo '{' 																			>> ./data.json
+	echo '  "value1":"'$FILENAME'",'													>> ./data.json
+	echo '  "value2":"submitted",' 														>> ./data.json
+	echo '  "value3":""'																>> ./data.json
+	echo '}' 																			>> ./data.json
+
+	curl -s -X POST -H "Content-Type: application/json" -d "@data.json" https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null
+	rm -rf ./data.json
+}
+
+echonotifystart() {
+	echo """
+echo '{' 																			>> ./data.json
+echo '  \"value1\":\"$FILENAME\",'													>> ./data.json
+echo '  \"value2\":\"running\",' 													>> ./data.json
+echo '  \"value3\":\" \"'															>> ./data.json
+echo '}' 																			>> ./data.json
+curl -s -X POST -H \"Content-Type: application/json\" -d \"@data.json\" https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null
+rm -rf ./data.json
+
+""" >> "$FILEPATH/$FILENAME.slm"
+}
+
+echonotifyend() {
+	echo """
+cd \""$FILEPATH/$FILENAME"\"
+echo '{' 																			>> ./data.json
+echo '  \"value1\":\"$FILENAME\",'													>> ./data.json
+echo '  \"value2\":\"finished\",' 													>> ./data.json
+# echo \"  \\\"value3\\\":\\\"\`tail -c 530 test.out | tr '\r\n' ' ' | sed 's/\\\"/ /g'\`\\\"\"	>> ./data.json
+echo '  \"value3\":\"$FILEPATH/$FILENAME/$FILENAME.out\",'							>> ./data.json
+echo '}' 																			>> ./data.json
+curl -s -X POST -H \"Content-Type: application/json\" -d \"@data.json\" https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null
+rm -rf ./data.json
+
+""" >> "$FILEPATH/$FILENAME.slm"
+}
+
 	hours="none"
 	mem="none"
 	tpn="none"
@@ -95,8 +145,9 @@ copyfiles() {
 	touchfile="false"
 	depjob="false"
 	projectdir="false"
+	notify="false"
 
-while getopts 'h:m:n:c:p:d:t:C:D:sSePq:' flag "${@}"; do
+while getopts 'h:m:n:c:p:d:t:C:D:sSNePq:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -112,6 +163,7 @@ while getopts 'h:m:n:c:p:d:t:C:D:sSePq:' flag "${@}"; do
 	D) depends="$OPTARG"; depjob="true";;
 	C) files2copy+=($OPTARG);;
 	P) projectdir="true";;
+	N) notify="true";;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
 	\?) echo "unknown option -$OPTARG"; print_usage; exit 1;;
 	*) print_usage; exit 0;;
@@ -263,6 +315,10 @@ for var in $@
 		echo ""																					>> "$FILEPATH/$FILENAME.slm"
 		echo "export PROJECT=\"$ACCOUNT\""														>> "$FILEPATH/$FILENAME.slm"
 
+		if [[ $notify == "true" ]]; then
+			echonotifystart
+		fi
+
 		case $inp in
 		"psi4")
 			echo "module load psi4/v1.3.2"														>> "$FILEPATH/$FILENAME.slm"
@@ -274,10 +330,10 @@ for var in $@
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "psi4 -i \"$FILENAME.in\" -o \"$FILENAME.out\" 2>&1"						>> "$FILEPATH/$FILENAME.slm"
 			else
-				echo "export PSI_SCRATCH=\"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
+				echo "export PSI_SCRATCH=\"$SCRATCH/$FILENAME\""								>> "$FILEPATH/$FILENAME.slm"
 				setupscratch
 				copyfiles
-				echo "psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"					>> "$FILEPATH/$FILENAME.slm"
+				echo "psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"				>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;
@@ -285,13 +341,13 @@ for var in $@
 			echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
 			echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
 			if [[ $projectdir == "true" ]]; then
-				echo "mkdir \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 			else
 				setupscratch	
 				copyfiles
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"		>> "$FILEPATH/$FILENAME.slm"
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;
@@ -316,6 +372,10 @@ for var in $@
 			;;
 		esac
 
+		if [[ $notify == "true" ]]; then
+			echonotifyend
+		fi
+
 		if [[ $touchfile == "true" ]]; then
 			touch "$FILEPATH/$FILENAME.out"
 		fi
@@ -328,7 +388,7 @@ for var in $@
 
 		if [[ $submit == "true" ]]; then
 			cd "$FILEPATH"
-			sbatch $depcommand "$FILEPATH/$FILENAME.slm"
+			sbatch $depcommand "$FILEPATH/$FILENAME.slm" && if [[ $notify == "true" ]]; then notifysubmit; fi
 			cd "$DIR"
 		fi
 	fi

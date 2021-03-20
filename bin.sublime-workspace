@@ -137,19 +137,23 @@
 				"Git: Push"
 			],
 			[
-				"commi",
-				"Git: Commit"
-			],
-			[
-				"all",
-				"Git: Add All"
-			],
-			[
 				"comm",
 				"Git: Commit"
 			],
 			[
 				"add",
+				"Git: Add All"
+			],
+			[
+				"stage",
+				"Git: Diff Staged Files"
+			],
+			[
+				"commi",
+				"Git: Commit"
+			],
+			[
+				"all",
 				"Git: Add All"
 			],
 			[
