@@ -123,7 +123,7 @@ cd \""$FILEPATH/$FILENAME"\"
 echo '{' 																			>> ./data.json
 echo '  \"value1\":\"$FILENAME\",'													>> ./data.json
 echo '  \"value2\":\"finished\",' 													>> ./data.json
-echo \"  \\\"value3\\\":\\\"\`tail -c 530 test.out | tr '\r\n' ' ' | sed 's/\\\"/ /g'\`\\\"\"	>> ./data.json
+echo \"  \\\"value3\\\":\\\"\`tail -c 530 $FILENAME.out | tr '\r\n' ' ' | sed 's/\\\"/ /g'\`\\\"\"	>> ./data.json
 echo '}' 																			>> ./data.json
 curl -s -X POST -H \"Content-Type: application/json\" -d \"@data.json\" https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null
 rm -rf ./data.json
