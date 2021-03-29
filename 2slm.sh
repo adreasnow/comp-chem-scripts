@@ -189,9 +189,9 @@ for var in $@
 			FILENAME=`/bin/basename -s .in "$FULLFILEPATH"`
 			;;
 		"orca")
-			PROCS=`cat "$FULLFILEPATH" | grep nprocs | xargs | cut -d' ' -f2`
-			MEM=`cat "$FULLFILEPATH" | grep maxcore | cut -d' ' -f2`
-			MEM=$(($MEM * $PROCS))
+			PROCS=`cat "$FULLFILEPATH" | grep nprocs | xargs | cut -d' ' -f2 | sort -rn | head -n 1`
+			MEM=`cat "$FULLFILEPATH" | grep maxcore | cut -d' ' -f2 | sort -rn | head -n 1`
+			MEM=$($MEM * $PROCS)
 			MEM=`echo $MEM | python -c "print(int(round(float(input())/1024)))"`
 			FILENAME=`/bin/basename -s .inp "$FULLFILEPATH"`
 			;;
