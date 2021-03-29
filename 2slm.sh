@@ -191,7 +191,7 @@ for var in $@
 		"orca")
 			PROCS=`cat "$FULLFILEPATH" | grep nprocs | xargs | cut -d' ' -f2 | sort -rn | head -n 1`
 			MEM=`cat "$FULLFILEPATH" | grep maxcore | cut -d' ' -f2 | sort -rn | head -n 1`
-			MEM=$($MEM * $PROCS)
+			MEM=$(($MEM * $PROCS))
 			MEM=`echo $MEM | python -c "print(int(round(float(input())/1024)))"`
 			FILENAME=`/bin/basename -s .inp "$FULLFILEPATH"`
 			;;
