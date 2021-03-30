@@ -326,6 +326,7 @@ for var in $@
 			if [[ $projectdir == "true" ]]; then
 				echo "export PSI_SCRATCH=\"$FILEPATH/$FILENAME\""								>> "$FILEPATH/$FILENAME.slm"
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
+				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "psi4 -i \"$FILENAME.in\" -o \"$FILENAME.out\" 2>&1"						>> "$FILEPATH/$FILENAME.slm"
 			else
@@ -341,6 +342,7 @@ for var in $@
 			echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
+				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 			else
