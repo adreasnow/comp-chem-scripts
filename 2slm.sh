@@ -146,7 +146,7 @@ rm -rf ./data.json
 	projectdir="false"
 	notify="false"
 
-while getopts 'h:m:n:c:p:d:t:C:D:sSNePq:' flag "${@}"; do
+while getopts 'h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
