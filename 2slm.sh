@@ -4,7 +4,7 @@ print_usage() {
 	echo """
 	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN]
 	  -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -N -C [FILE1]
-	  -C [FILE2] -D [JOBID] [INPUT FILES]...
+	  -C [FILE2] -D [JOBID] -O [ORCA VERSION] [INPUT FILES]...
 
 	Arguments
 	  [FILE] the files to be converted into slurm fils
@@ -47,6 +47,8 @@ print_usage() {
 	    this forces the script to make sure that the logfile exists before the slurm job is run
 
 	  -S Submits job via SLURM
+
+	  -O ORCA version, choose from 5 (ORCA 5.0.0) and 4 (ORCA 4.2.1) 
 
 	  -D SLURM dependency ('-d afterany:<JOBID>')
 
@@ -145,8 +147,9 @@ rm -rf ./data.json
 	depjob="false"
 	projectdir="false"
 	notify="false"
+	orcaversion="5"
 
-while getopts 'h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
+while getopts 'O:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -163,6 +166,7 @@ while getopts 'h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
 	C) files2copy+=($OPTARG);;
 	P) projectdir="true";;
 	N) notify="true";;
+	O) orcaversion="$OPTARG";;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
 	\?) echo "unknown option -$OPTARG"; print_usage; exit 1;;
 	*) print_usage; exit 0;;
@@ -352,19 +356,23 @@ for var in $@
 			fi
 			;;
 		"orca")
-			######################### For orca 5.0.0 #########################
-			echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
-			echo "export MPI_DIR=\"/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/openmpi4-4.1.1\""							>> "$FILEPATH/$FILENAME.slm"
-			echo "export ORCA_ROOT=/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/orca_5_0_0_linux_x86-64_shared_openmpi411"	>> "$FILEPATH/$FILENAME.slm"
-			echo "export LD_LIBRARY_PATH=\"\$MPI_DIR/lib:\$ORCA_ROOT:\$LD_LIBRARY_PATH\""		>> "$FILEPATH/$FILENAME.slm"
-			echo "export PATH=\"\$MPI_DIR/bin:\$ORCA_ROOT:\$PATH\""								>> "$FILEPATH/$FILENAME.slm"
-			echo "export MPI_HOME=\"\$MPI_DIR\""												>> "$FILEPATH/$FILENAME.slm"
-			echo "export OPENMPI_ROOT=\"\$MPI_DIR\""											>> "$FILEPATH/$FILENAME.slm"
-			echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
-			echo ""																				>> "$FILEPATH/$FILENAME.slm"
-			######################### For orca 4.2.1 #########################
-			# echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
-			# echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
+			if [[ $orcaversion == 5 ]]; then
+				######################### For orca 5.0.0 #########################
+				echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
+				echo "export MPI_DIR=\"/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/openmpi4-4.1.1\""							>> "$FILEPATH/$FILENAME.slm"
+				echo "export ORCA_ROOT=/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/orca_5_0_0_linux_x86-64_shared_openmpi411"	>> "$FILEPATH/$FILENAME.slm"
+				echo "export LD_LIBRARY_PATH=\"\$MPI_DIR/lib:\$ORCA_ROOT:\$LD_LIBRARY_PATH\""		>> "$FILEPATH/$FILENAME.slm"
+				echo "export PATH=\"\$MPI_DIR/bin:\$ORCA_ROOT:\$PATH\""								>> "$FILEPATH/$FILENAME.slm"
+				echo "export MPI_HOME=\"\$MPI_DIR\""												>> "$FILEPATH/$FILENAME.slm"
+				echo "export OPENMPI_ROOT=\"\$MPI_DIR\""											>> "$FILEPATH/$FILENAME.slm"
+				echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
+				echo ""																				>> "$FILEPATH/$FILENAME.slm"
+			elif [[ $orcaversion == 4 ]]; then
+				######################### For orca 4.2.1 #########################
+				echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
+				echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
+			fi
+			
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
