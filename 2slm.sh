@@ -320,7 +320,21 @@ for var in $@
 
 		case $inp in
 		"psi4")
-			echo "module load psi4/v1.3.2"														>> "$FILEPATH/$FILENAME.slm"
+			echo "module load psi4/v1.3.2" 														>> "$FILEPATH/$FILENAME.slm"
+
+			# echo "__conda_setup=\"\$('/home/asnow/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"" >> "$FILEPATH/$FILENAME.slm"
+			# echo "if [ \$? -eq 0 ]; then"														>> "$FILEPATH/$FILENAME.slm"
+			# echo "	eval \"\$__conda_setup\""													>> "$FILEPATH/$FILENAME.slm"
+			# echo "else"																			>> "$FILEPATH/$FILENAME.slm"
+			# echo "	if [ -f \"/home/asnow/miniconda3/etc/profile.d/conda.sh\" ]; then"			>> "$FILEPATH/$FILENAME.slm"
+			# echo "		. \"/home/asnow/miniconda3/etc/profile.d/conda.sh\""					>> "$FILEPATH/$FILENAME.slm"
+			# echo "	else"																		>> "$FILEPATH/$FILENAME.slm"
+			# echo "		export PATH=\"/home/asnow/miniconda3/bin:\$PATH\""						>> "$FILEPATH/$FILENAME.slm"
+			# echo "	fi"																			>> "$FILEPATH/$FILENAME.slm"
+			# echo "fi"																			>> "$FILEPATH/$FILENAME.slm"
+			# echo "unset __conda_setup"															>> "$FILEPATH/$FILENAME.slm"
+			# echo "conda activate psi4-1.4"														>> "$FILEPATH/$FILENAME.slm"
+		
 			echo "export PSIPATH=\$PSIPATH:$HOMEPATH/basis-sets/psi4"							>> "$FILEPATH/$FILENAME.slm"
 
 			if [[ $projectdir == "true" ]]; then
@@ -338,8 +352,19 @@ for var in $@
 			fi
 			;;
 		"orca")
+			######################### For orca 5.0.0 #########################
 			echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
-			echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
+			echo "export MPI_DIR=\"/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/openmpi4-4.1.1\""							>> "$FILEPATH/$FILENAME.slm"
+			echo "export ORCA_ROOT=/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/orca_5_0_0_linux_x86-64_shared_openmpi411"	>> "$FILEPATH/$FILENAME.slm"
+			echo "export LD_LIBRARY_PATH=\"\$MPI_DIR/lib:\$ORCA_ROOT:\$LD_LIBRARY_PATH\""		>> "$FILEPATH/$FILENAME.slm"
+			echo "export PATH=\"\$MPI_DIR/bin:\$ORCA_ROOT:\$PATH\""								>> "$FILEPATH/$FILENAME.slm"
+			echo "export MPI_HOME=\"\$MPI_DIR\""												>> "$FILEPATH/$FILENAME.slm"
+			echo "export OPENMPI_ROOT=\"\$MPI_DIR\""											>> "$FILEPATH/$FILENAME.slm"
+			echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
+			echo ""																				>> "$FILEPATH/$FILENAME.slm"
+			######################### For orca 4.2.1 #########################
+			# echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
+			# echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"

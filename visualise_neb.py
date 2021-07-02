@@ -38,8 +38,7 @@ for infile in sys.argv[1:]:
             # cleaned_current_iterations += [values]
         input_iterations = [x, y]
         cleaned_iterations += [input_iterations]
-
-
+    # plots each iteration as a black line and colours the last one red for emphasis
     fig, ax = plt.subplots(1, 1)
     ax.set_ylabel(r'Relative Energy ($kJ\cdot mol^{-1}$)')
     ax.set_xlabel(r"Reaction coordinate")
@@ -54,5 +53,13 @@ for infile in sys.argv[1:]:
     y = cleaned_iterations[-1][1]
     ax.plot(x, y, color='r', linewidth=1, marker=".")
 
+    # plots lines between each of the points to show how they change over the iterations
+    for i in range(len(cleaned_iterations[0][0])): # of NEB points
+        x = []
+        y = []
+        for j in range(len(cleaned_iterations)): #2 of these
+            x += [cleaned_iterations[j][0][i]]
+            y += [cleaned_iterations[j][1][i]]
+        ax.plot(x, y, color='dimgrey', linewidth=0.2, linestyle='--')
     plt.show()
         
