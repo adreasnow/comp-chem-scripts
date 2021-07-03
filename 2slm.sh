@@ -365,14 +365,16 @@ for var in $@
 				echo "export PATH=\"\$MPI_DIR/bin:\$ORCA_ROOT:\$PATH\""								>> "$FILEPATH/$FILENAME.slm"
 				echo "export MPI_HOME=\"\$MPI_DIR\""												>> "$FILEPATH/$FILENAME.slm"
 				echo "export OPENMPI_ROOT=\"\$MPI_DIR\""											>> "$FILEPATH/$FILENAME.slm"
-				echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
+				echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:\$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
+				echo "export OMPI_MCA_btl_openib_warn_no_device_params_found 0"						>> "$FILEPATH/$FILENAME.slm"
 				echo ""																				>> "$FILEPATH/$FILENAME.slm"
 			elif [[ $orcaversion == 4 ]]; then
 				######################### For orca 4.2.1 #########################
 				echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
 				echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
 			fi
-			
+
+				echo 
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
@@ -381,7 +383,7 @@ for var in $@
 			else
 				setupscratch	
 				copyfiles
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"--mca btl_openib_warn_no_device_params_found 0 --mca pml ob1 --mca btl ^openib\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;
