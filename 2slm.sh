@@ -90,7 +90,7 @@ copyscratch() {
 
 copyfiles() {
 	for var in ${files2copy[@]}; do
-		COPYFILEPATH=`readlink -f $var`
+		COPYFILEPATH=`realpath $var`
 		echo "cp \"$COPYFILEPATH\" \"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
 	done
 }
@@ -125,7 +125,7 @@ cd \""$FILEPATH/$FILENAME"\"
 echo '{' 																			>> ./data.json
 echo '  \"value1\":\"$FILENAME\",'													>> ./data.json
 echo '  \"value2\":\"finished\",' 													>> ./data.json
-echo \"  \\\"value3\\\":\\\"\`tail -c 530 $FILENAME.out | tr '\r\n' ' ' | sed 's/\\\"/ /g'\`\\\"\"	>> ./data.json
+echo '  \"value3\":\" \"'															>> ./data.json
 echo '}' 																			>> ./data.json
 curl -s -X POST -H \"Content-Type: application/json\" -d \"@data.json\" https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null
 rm -rf ./data.json
@@ -183,7 +183,7 @@ for var in $@
 	esac
 
 	if [[ $inp != "none" ]]; then
-		FULLFILEPATH=`readlink -f $var`
+		FULLFILEPATH=`realpath $var`
 		FILEPATH=`dirname "$FULLFILEPATH"`
 
 		case $inp in
