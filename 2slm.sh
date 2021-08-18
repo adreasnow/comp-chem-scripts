@@ -4,7 +4,7 @@ print_usage() {
 	echo """
 	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN]
 	  -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -N -C [FILE1]
-	  -C [FILE2] -D [JOBID] -O [ORCA VERSION] [INPUT FILES]...
+	  -C [FILE2] -D [JOBID] -V [SOFTWARE VERSION] [INPUT FILES]...
 
 	Arguments
 	  [FILE] the files to be converted into slurm fils
@@ -48,7 +48,10 @@ print_usage() {
 
 	  -S Submits job via SLURM
 
-	  -O ORCA version, choose from 5 (ORCA 5.0.0) and 4 (ORCA 4.2.1) 
+	  -V software version, choose from:
+	  	For ORCA - 4 (ORCA 4.2.1) and 5 (ORCA 5.0.1) (default = 5)
+		For Psi4 - 1.3 (Psi4 1.3.2) and 1.4 (Psi4 1.4.0) (default = 1.4)
+			Assumes Psi4 is installed with Miniconda in psi4-1.4
 
 	  -D SLURM dependency ('-d afterany:<JOBID>')
 
@@ -148,8 +151,9 @@ rm -rf ./data.json
 	projectdir="false"
 	notify="false"
 	orcaversion="5"
+	psi4version="1.4"
 
-while getopts 'O:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
+while getopts 'V:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -166,7 +170,7 @@ while getopts 'O:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
 	C) files2copy+=($OPTARG);;
 	P) projectdir="true";;
 	N) notify="true";;
-	O) orcaversion="$OPTARG";;
+	V) orcaversion="$OPTARG";psi4version="$OPTARG";;
 	:) echo "missing argument for option -$OPTARG"; print_usage; exit 1;;
 	\?) echo "unknown option -$OPTARG"; print_usage; exit 1;;
 	*) print_usage; exit 0;;
@@ -181,6 +185,22 @@ for var in $@
 	"gjf") inp="gaussian";;
 	*)     inp="none";;
 	esac
+	if [[ $inp == "orca" ]]; then 
+		if [[ $orcaversion == "4" ]] || [[ $orcaversion == "5" ]]; then
+			echo "Using ORCA version $orcaversion"
+		else
+			echo "ORCA version not recognised or supported"
+			exit 0
+		fi
+	fi
+	if [[ $inp == "psi4" ]]; then
+		if [[ $psi4version == "1.3" ]] || [[ $psi4version == "1.4" ]]; then
+			echo "Using Psi4 version $psi4version"
+		else
+			echo "Psi4 version not recognised or supported"
+			exit 0
+		fi
+	fi
 
 	if [[ $inp != "none" ]]; then
 		FULLFILEPATH=`realpath $var`
@@ -324,24 +344,16 @@ for var in $@
 
 		case $inp in
 		"psi4")
-			echo "module load psi4/v1.3.2" 														>> "$FILEPATH/$FILENAME.slm"
+			if [[ $psi4version == "1.3" ]]; then
+				echo "module load psi4/v1.3.2" 													>> "$FILEPATH/$FILENAME.slm"
+			elif [[ $psi4version == "1.4" ]]; then
+				echo "source $PROJECT/apps/psi4-1.4/activate_psi4.sh" 							>> "$FILEPATH/$FILENAME.slm"
+			fi
 
-			# echo "__conda_setup=\"\$('/home/asnow/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"" >> "$FILEPATH/$FILENAME.slm"
-			# echo "if [ \$? -eq 0 ]; then"														>> "$FILEPATH/$FILENAME.slm"
-			# echo "	eval \"\$__conda_setup\""													>> "$FILEPATH/$FILENAME.slm"
-			# echo "else"																			>> "$FILEPATH/$FILENAME.slm"
-			# echo "	if [ -f \"/home/asnow/miniconda3/etc/profile.d/conda.sh\" ]; then"			>> "$FILEPATH/$FILENAME.slm"
-			# echo "		. \"/home/asnow/miniconda3/etc/profile.d/conda.sh\""					>> "$FILEPATH/$FILENAME.slm"
-			# echo "	else"																		>> "$FILEPATH/$FILENAME.slm"
-			# echo "		export PATH=\"/home/asnow/miniconda3/bin:\$PATH\""						>> "$FILEPATH/$FILENAME.slm"
-			# echo "	fi"																			>> "$FILEPATH/$FILENAME.slm"
-			# echo "fi"																			>> "$FILEPATH/$FILENAME.slm"
-			# echo "unset __conda_setup"															>> "$FILEPATH/$FILENAME.slm"
-			# echo "conda activate psi4-1.4"														>> "$FILEPATH/$FILENAME.slm"
-		
-			echo "export PSIPATH=\$PSIPATH:$HOMEPATH/basis-sets/psi4"							>> "$FILEPATH/$FILENAME.slm"
+			echo "export PSIPATH=\$PSIPATH:$HOMEPATH/basis"										>> "$FILEPATH/$FILENAME.slm"
 
 			if [[ $projectdir == "true" ]]; then
+				echo "export export PSIPATH=\"PSIPATH:$PSIPATH\""								>> "$FILEPATH/$FILENAME.slm"
 				echo "export PSI_SCRATCH=\"$FILEPATH/$FILENAME\""								>> "$FILEPATH/$FILENAME.slm"
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
@@ -356,34 +368,25 @@ for var in $@
 			fi
 			;;
 		"orca")
-			if [[ $orcaversion == 5 ]]; then
-				######################### For orca 5.0.0 #########################
-				echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
-				echo "export MPI_DIR=\"/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/openmpi4-4.1.1\""							>> "$FILEPATH/$FILENAME.slm"
-				echo "export ORCA_ROOT=/mnt/lustre/projects/p2015120004/apps/orca_5.0.0/orca_5_0_0_linux_x86-64_shared_openmpi411"	>> "$FILEPATH/$FILENAME.slm"
-				echo "export LD_LIBRARY_PATH=\"\$MPI_DIR/lib:\$ORCA_ROOT:\$LD_LIBRARY_PATH\""		>> "$FILEPATH/$FILENAME.slm"
-				echo "export PATH=\"\$MPI_DIR/bin:\$ORCA_ROOT:\$PATH\""								>> "$FILEPATH/$FILENAME.slm"
-				echo "export MPI_HOME=\"\$MPI_DIR\""												>> "$FILEPATH/$FILENAME.slm"
-				echo "export OPENMPI_ROOT=\"\$MPI_DIR\""											>> "$FILEPATH/$FILENAME.slm"
-				echo "export LIBRARY_PATH=\"\$MPI_DIR/lib:\$LIBRARY_PATH\""							>> "$FILEPATH/$FILENAME.slm"
-				echo "export OMPI_MCA_btl_openib_warn_no_device_params_found 0"						>> "$FILEPATH/$FILENAME.slm"
-				echo ""																				>> "$FILEPATH/$FILENAME.slm"
-			elif [[ $orcaversion == 4 ]]; then
+			if [[ $orcaversion == "5" ]]; then
+				######################### For orca 5.0.1 #########################
+				echo "source $PROJECT/apps/orca_5.0.1/activate_orca.sh"							>> "$FILEPATH/$FILENAME.slm"
+			elif [[ $orcaversion == "4" ]]; then
 				######################### For orca 4.2.1 #########################
-				echo "module unload orca/4.2.1"														>> "$FILEPATH/$FILENAME.slm"
-				echo "module load orca/4.2.1-216"													>> "$FILEPATH/$FILENAME.slm"
+				echo "module unload orca/4.2.1"													>> "$FILEPATH/$FILENAME.slm"
+				echo "module load orca/4.2.1-216"												>> "$FILEPATH/$FILENAME.slm"
 			fi
 
-				echo 
+			MPIARGS="--mca btl_openib_warn_no_device_params_found 0 --mca pml ob1 --mca btl ^openib"
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 			else
 				setupscratch	
 				copyfiles
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"--mca btl_openib_warn_no_device_params_found 0 --mca pml ob1 --mca btl ^openib\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;
