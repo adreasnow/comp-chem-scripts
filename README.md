@@ -13,3 +13,6 @@ These jobs just take ORCA 4/5 output files that have been solvated with CPCM (Wi
 
 ## `visualise_neb.py`
 This does exactly what it says, it takes an ORCA NEB `.interp` file and plots it in a nice neat way that doesn't rely on interpolation through spline fitting.
+
+## `chkoptenergy.py`
+Takes the output from an ORCA/Psi4/Gaussian opt job and plots the energy so that you you can see the optimiser progress.
