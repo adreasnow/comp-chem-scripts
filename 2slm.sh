@@ -3,7 +3,7 @@ DIR=`pwd`
 print_usage() {
 	echo """
 	Usage: 2slm -d [DAYS] -h [HOURS] -s -m [MEM (GB)] -n [TPN]
-	  -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -N -C [FILE1]
+	  -c [PROCS] -p [PARTITIONS] -e -q [QOS] -t -P -N -o -C [FILE1]
 	  -C [FILE2] -D [JOBID] -V [SOFTWARE VERSION] [INPUT FILES]...
 
 	Arguments
@@ -42,6 +42,8 @@ print_usage() {
 	    set this in your rc file
 
 	  -q qos specification
+
+	  -o use non-priority (nOrmal) qos
 
 	  -t this flag tells the ccript to 'touch' the log file. 
 	    this forces the script to make sure that the logfile exists before the slurm job is run
@@ -87,13 +89,13 @@ setupscratch() {
 
 copyscratch() {
 	echo "mkdir \"$FILEPATH/$FILENAME\""															>> "$FILEPATH/$FILENAME.slm"
-	echo "cp $SCRATCH/$FILENAME/* \"$FILEPATH/$FILENAME/\" && rm -rf \"$SCRATCH/$FILENAME\""		>> "$FILEPATH/$FILENAME.slm"
+	echo "cp -r $SCRATCH/$FILENAME/* \"$FILEPATH/$FILENAME/\" && rm -rf \"$SCRATCH/$FILENAME\""		>> "$FILEPATH/$FILENAME.slm"
 	echo "mv \"$FILEPATH/$FILENAME.out\" \"$FILEPATH/$FILENAME/\""									>> "$FILEPATH/$FILENAME.slm"
 }
 
 copyfiles() {
 	for var in ${files2copy[@]}; do
-		COPYFILEPATH=`realpath $var`
+		COPYFILEPATH=`realpath "$var"`
 		echo "cp \"$COPYFILEPATH\" \"$SCRATCH/$FILENAME\""									>> "$FILEPATH/$FILENAME.slm"
 	done
 }
@@ -143,6 +145,7 @@ rm -rf ./data.json
 	part="none"
 	days="none"
 	email="false"
+	normal="false"
 	qos="none"
 	short="false"
 	submit="false"
@@ -153,7 +156,7 @@ rm -rf ./data.json
 	orcaversion="5"
 	psi4version="1.4"
 
-while getopts 'V:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
+while getopts 'V:h:m:n:c:p:d:tD:sSoNePq:C:' flag "${@}"; do
   case "$flag" in
 	h) hours=$OPTARG;;
 	m) mem="$OPTARG";;
@@ -164,6 +167,7 @@ while getopts 'V:h:m:n:c:p:d:tD:sSNePq:C:' flag "${@}"; do
 	e) email="true";;
 	q) qos="$OPTARG";;
 	s) short="true";;
+	o) normal="true";;
 	S) submit="true";;
 	t) touchfile="true";;
 	D) depends="$OPTARG"; depjob="true";;
@@ -203,7 +207,7 @@ for var in $@
 	fi
 
 	if [[ $inp != "none" ]]; then
-		FULLFILEPATH=`realpath $var`
+		FULLFILEPATH=`realpath "$var"`
 		FILEPATH=`dirname "$FULLFILEPATH"`
 
 		case $inp in
@@ -326,13 +330,19 @@ for var in $@
 		#qos selection
 		if [[ $qos != "none" ]]; then
 			if [[ `hostname` == 'monarch'* ]]; then
-				echo "#SBATCH --qos=partner,$qos"												>> "$FILEPATH/$FILENAME.slm"
+				if [[ $normal == "true" ]]; then
+					echo "#SBATCH --qos=$qos"													>> "$FILEPATH/$FILENAME.slm"
+				else
+					echo "#SBATCH --qos=partner,$qos"											>> "$FILEPATH/$FILENAME.slm"
+				fi
 			else
 				echo "#SBATCH --qos=$qos"														>> "$FILEPATH/$FILENAME.slm"
 			fi
 		else
 			if [[ `hostname` == 'monarch'* ]]; then
-				echo "#SBATCH --qos=partner"													>> "$FILEPATH/$FILENAME.slm"
+				if [[ $normal != "true" ]]; then
+					echo "#SBATCH --qos=partner"												>> "$FILEPATH/$FILENAME.slm"
+				fi
 			fi
 		fi
 		echo ""																					>> "$FILEPATH/$FILENAME.slm"
@@ -358,12 +368,12 @@ for var in $@
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
-				echo "psi4 -i \"$FILENAME.in\" -o \"$FILENAME.out\" 2>&1"						>> "$FILEPATH/$FILENAME.slm"
+				echo "/usr/bin/time -v psi4 -i \"$FILENAME.in\" -o \"$FILENAME.out\" 2>&1"						>> "$FILEPATH/$FILENAME.slm"
 			else
 				echo "export PSI_SCRATCH=\"$SCRATCH/$FILENAME\""								>> "$FILEPATH/$FILENAME.slm"
 				setupscratch
 				copyfiles
-				echo "psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"				>> "$FILEPATH/$FILENAME.slm"
+				echo "/usr/bin/time -v psi4 -i \"$FILENAME.in\" -o \"$FILEPATH/$FILENAME.out\" 2>&1"				>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;
@@ -382,11 +392,11 @@ for var in $@
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
 				echo "cd \"$FILEPATH/$FILENAME\""												>> "$FILEPATH/$FILENAME.slm"
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+				echo "/usr/bin/time -v \$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 			else
 				setupscratch	
 				copyfiles
-				echo "\$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
+				echo "/usr/bin/time -v \$ORCA_ROOT/orca \"$FILENAME.inp\" \"$MPIARGS\" > \"$FILEPATH/$FILENAME.out\" 2>&1"	>> "$FILEPATH/$FILENAME.slm"
 				copyscratch
 			fi
 			;;

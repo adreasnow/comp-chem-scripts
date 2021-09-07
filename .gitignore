@@ -2,3 +2,5 @@
 !.gitignore
 !2slm.sh
 !visualise_neb.py
+!gsolv.py
+!gsolv-z.py
