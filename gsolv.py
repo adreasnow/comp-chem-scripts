@@ -6,12 +6,15 @@ import os
 for file in sys.argv[1:]:
     corrected = []
     corrected_delta_g = []
+    scanlist = []
+    scancount = 0
     charge_correction = 0
     free_energy = 0
     delta_g = 0
     delta_e = 0
     delta_g_count = 0
     outputfile = False
+    scan = False
 
     file = os.path.abspath(file)
     with open(file, "r") as f:
@@ -30,6 +33,8 @@ for file in sys.argv[1:]:
             delta_e = float(line.split()[4])
         elif "* O   R   C   A *" in line:
             outputfile = True
+        elif "RELAXED SURFACE SCAN STEP" in line:
+            scan = True
         if delta_e != 0:
             corrected += [charge_correction + free_energy + delta_e]
             delta_e = 0
@@ -39,6 +44,11 @@ for file in sys.argv[1:]:
             corrected_delta_g += [charge_correction + free_energy + delta_g]
             delta_g = 0
             delta_g_count += 1
+        if scan == True:
+            if len(corrected) != 0 :
+                scanlist += [corrected[-1]]
+                scan = False
+                scancount += 1
 
     if outputfile == True and len(corrected) > 0:
         if delta_g_count == 1:
@@ -48,6 +58,11 @@ for file in sys.argv[1:]:
             print(f"{file.split('/')[-1]} Delta G multiple")
             for i in corrected_delta_g:
                 print(i)
+        elif scancount > 0:
+            print(f"{file.split('/')[-1]} Delta E (scan)")
+            for i in scanlist[1:]:
+                print(i)
+            print(corrected[-1])
         else:
             print(f"{file.split('/')[-1]} Delta E")
             for i in corrected:
