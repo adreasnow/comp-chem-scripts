@@ -52,8 +52,8 @@ print_usage() {
 
 	  -V software version, choose from:
 	  	For ORCA - 4 (ORCA 4.2.1) and 5 (ORCA 5.0.1) (default = 5)
-		For Psi4 - 1.3 (Psi4 1.3.2) and 1.4 (Psi4 1.4.0) (default = 1.4)
-			Assumes Psi4 is installed with Miniconda in psi4-1.4
+		For Psi4 - 1.3 (Psi4 1.3.2), 1.4 (Psi4 1.4.1), , 1.4 (Psi4 1.5.0) (default = 1.5)
+			Assumes Psi4 is installed with Miniconda in psi4-1.5
 
 	  -D SLURM dependency ('-d afterany:<JOBID>')
 
@@ -154,7 +154,7 @@ rm -rf ./data.json
 	projectdir="false"
 	notify="false"
 	orcaversion="5"
-	psi4version="1.4"
+	psi4version="1.5"
 
 while getopts 'V:h:m:n:c:p:d:tD:sSoNePq:C:' flag "${@}"; do
   case "$flag" in
@@ -198,7 +198,7 @@ for var in $@
 		fi
 	fi
 	if [[ $inp == "psi4" ]]; then
-		if [[ $psi4version == "1.3" ]] || [[ $psi4version == "1.4" ]]; then
+		if [[ $psi4version == "1.3" ]] || [[ $psi4version == "1.4" ]] || [[ $psi4version == "1.5" ]]; then
 			echo "Using Psi4 version $psi4version"
 		else
 			echo "Psi4 version not recognised or supported"
@@ -356,8 +356,8 @@ for var in $@
 		"psi4")
 			if [[ $psi4version == "1.3" ]]; then
 				echo "module load psi4/v1.3.2" 													>> "$FILEPATH/$FILENAME.slm"
-			elif [[ $psi4version == "1.4" ]]; then
-				echo "source $PROJECT/apps/psi4-1.4/activate_psi4.sh" 							>> "$FILEPATH/$FILENAME.slm"
+			else
+				echo "source $PROJECT/apps/psi4-$psi4version/activate_psi4.sh" 					>> "$FILEPATH/$FILENAME.slm"
 			fi
 
 			echo "export PSIPATH=\$PSIPATH:$HOMEPATH/basis"										>> "$FILEPATH/$FILENAME.slm"
