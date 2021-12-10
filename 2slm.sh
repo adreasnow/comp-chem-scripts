@@ -51,7 +51,7 @@ print_usage() {
 	  -S Submits job via SLURM
 
 	  -V software version, choose from:
-	  	For ORCA - 4 (ORCA 4.2.1) and 5 (ORCA 5.0.1) (default = 5)
+	  	For ORCA - 4 (ORCA 4.2.1) and 5 (ORCA 5.0.2) (default = 5)
 		For Psi4 - 1.3 (Psi4 1.3.2), 1.4 (Psi4 1.4.1), , 1.4 (Psi4 1.5.0) (default = 1.5)
 			Assumes Psi4 is installed with Miniconda in psi4-1.5
 
@@ -379,8 +379,8 @@ for var in $@
 			;;
 		"orca")
 			if [[ $orcaversion == "5" ]]; then
-				######################### For orca 5.0.1 #########################
-				echo "source $PROJECT/apps/orca_5.0.1/activate_orca.sh"							>> "$FILEPATH/$FILENAME.slm"
+				######################### For orca 5.0.X #########################
+				echo "source $PROJECT/apps/orca_5.0.2/activate_orca.sh"							>> "$FILEPATH/$FILENAME.slm"
 			elif [[ $orcaversion == "4" ]]; then
 				######################### For orca 4.2.1 #########################
 				echo "module unload orca/4.2.1"													>> "$FILEPATH/$FILENAME.slm"
@@ -388,6 +388,7 @@ for var in $@
 			fi
 
 			MPIARGS="--mca btl_openib_warn_no_device_params_found 0 --mca pml ob1 --mca btl ^openib"
+			
 			if [[ $projectdir == "true" ]]; then
 				echo "mkdir \"$FILEPATH/$FILENAME\""											>> "$FILEPATH/$FILENAME.slm"
 				echo "cp \"$FILEPATH/$FILENAME.inp\" \"$FILEPATH/$FILENAME\""					>> "$FILEPATH/$FILENAME.slm"
