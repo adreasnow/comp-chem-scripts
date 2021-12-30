@@ -5,6 +5,9 @@ A job submitter for MonARCH and M3 that supports the automatic generation and su
 
 It also supports a few more advanced tricks, like IFTTT notificaitons, file copying, software version selection, dependencies, working form the projects forlder instead of scratch, switching between normal and partner QoS, etc.
 
+## `orca_ircmax.py`
+Brings the functionality of the Gaussian IRCmax process to ORCA
+
 ## `gsolv.py` and `gsolv-z.py`
 These jobs just take ORCA 4/5 output files that have been solvated with CPCM (With or without SMD) and adds on the solvation cavitation and surface charge enrgies into the appropriate Total SCF energy or Gibbs Free Energy. 
 
