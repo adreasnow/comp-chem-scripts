@@ -9,7 +9,7 @@ It also supports a few more advanced tricks, like IFTTT notificaitons, file copy
 Brings the functionality of the Gaussian IRCmax process to ORCA.
 * It will create a directory called `scratch` in the location that it's called from, so cd where you want it before you call it
 * Takes the `ORCA_ROOT` environment variable, so be sure to source ORCA or load the orca module in your slurm script
-* Outputs the resutls to 00-ircmax_results.out. These include the IRC and IRCmax energies for the specified range
+* Outputs the resutls to `00-ircmax_results.out`. These include the IRC and IRCmax energies for the specified range
 * The IRC job files are prefixed with `irc_` and the IRCmax jobfiles are prefixed with `ircmax_##`.
 
 ## `gsolv.py` and `gsolv-z.py`
