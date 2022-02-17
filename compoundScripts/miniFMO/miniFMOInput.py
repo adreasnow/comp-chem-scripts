@@ -10,6 +10,7 @@ psi4.set_memory('48GB')
 psi4.set_num_threads(32)
 psi4.core.set_output_file('Psi4.log', True)
 
+chargeTheory = "MULLIKEN_CHARGES" # partial charge method only
 theory = 'm06-2x'
 logfile = 'miniFMO.log'
 FMOEConvTol = 1e-9 # How tight should the FMO1 procedures try to converge to 
