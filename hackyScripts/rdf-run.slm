@@ -1,0 +1,43 @@
+#!/bin/bash
+#SBATCH --ntasks=2
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=64G
+#SBATCH --time=24:00:00
+#SBATCH --partition=short,comp
+#SBATCH --qos=partner
+
+jobname="rdfgen"
+############################################# NOTIFY #############################################
+echo '{' 																		>> ./data.json
+echo "  \"value1\":\"$jobname\","												>> ./data.json
+echo '  "value2":"running",' 													>> ./data.json
+echo '  "value3":" "'															>> ./data.json
+echo '}' 																		>> ./data.json
+curl -s -X POST -H "Content-Type: application/json" -d "@data.json" https://maker.ifttt.com/trigger/job_id_done/with/key/eEvfCdvzr4jy_SX51JYjKhAILZjPa53n8MFcQd1FErB > /dev/null
+rm -rf ./data.json
+
+
+############################################# JOB RUN #############################################
+__conda_setup="$('/home/asnow/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/asnow/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/asnow/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/asnow/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+
+python3 /home/asnow/p2015120004/asnow/honours/bin/rdfgen-mdtraj.py 2 > /home/asnow/p2015120004/asnow/honours/bin/rdfgen-mdtraj.out
+
+
+############################################# NOTIFY #############################################
+echo '{' 																		>> ./data.json
+echo "  \"value1\":\"$jobname\","												>> ./data.json
+echo '  "value2":"finished",' 													>> ./data.json
+echo '  "value3":" "'															>> ./data.json
+echo '}' 																		>> ./data.json
+curl -s -X POST -H "Content-Type: application/json" -d "@data.json" https://maker.ifttt.com/trigger/job_id_done/with/key/eEvfCdvzr4jy_SX51JYjKhAILZjPa53n8MFcQd1FErB > /dev/null
+rm -rf ./data.json
