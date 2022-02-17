@@ -1,7 +1,7 @@
 # Adrea's comp chem scripts (that are worth sharing)
 
 ## `compoundScripts/fieldGen`
-This tool allows you to generate an electric field based on the grid points surrounding the molecules, and with the help of `plotField.py`, allows you to visualise the fiueld in PyMOL. since Psi4's generation of properties on a grid is serial in nature, I've also parallelised that process.
+This tool allows you to generate an electric field based on the grid points surrounding the molecules, and with the help of [`plotVecField.py`](https://github.com/adreasnow/PyMOLScripts/blob/master/plotVecField.py), allows you to visualise the fiueld in PyMOL. since Psi4's generation of properties on a grid is serial in nature, I've also parallelised that process.
 
 Tips:
 * If your wavefunction is going to take up lots of memory, make sure to run  your psi4 job specifying only a small amount (~16GB) but allow the slurm job to take as much memory as you need. This will force the calculation to use disk-based algorithms, instead of in-memory ones, that can otherwise explode in memory during density fitting procedures.
