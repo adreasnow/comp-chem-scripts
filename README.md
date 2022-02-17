@@ -3,6 +3,9 @@
 ## `compoundScripts/fieldGen`
 This tool allows you to generate an electric field based on the grid points surrounding the molecules, and with the help of `plotField.py`, allows you to visualise the fiueld in PyMOL. since Psi4's generation of properties on a grid is serial in nature, I've also parallelised that process.
 
+Tips:
+If your wavefunction is going to take up lots of memory, make sure to run  your psi4 job specifying only a small amount (~16GB) but allow the slurm job to take as much memory as you need. This will force the calculation to use disk-based algorithms, instead of in-memory ones, that can otherwise explode in memory during density fitting procedures. Also make sure that you specify the same number of threads in the psi4 job as you do in the slurm script.
+
 ## `compoundScripts/miniFMO`
 This praticular project was a failiure, but attempted ot re-implement the FMO1+2 method in Psi4, using point charge genration of the ESP and optimisation. The process has been documented [on my website](https://adreasnow.com/PhD/Notebook/001/#method-testing) 
 

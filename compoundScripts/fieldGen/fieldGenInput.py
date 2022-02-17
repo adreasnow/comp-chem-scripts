@@ -11,7 +11,6 @@ psi4.set_num_threads(32)
 psi4.core.set_output_file('Psi4.log', True)
 
 theory = 'm06-2x'
-logfile = 'miniFMO.log'
 molecularBuffer = 200 # How many Åe+1 larger than the molecule should the point generation box be
 gridDensity = 7 # How many Åe-1 between each grid point. CHELPG suggests 3-8 (0.3-0.8Å)
 vdwScaling = 1.2 # the factor by which to multiply the vdw radii by for the inner ESP cutoff. CHELPG uses 1.2 Å

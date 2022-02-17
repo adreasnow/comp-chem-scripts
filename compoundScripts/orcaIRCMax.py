@@ -2,7 +2,6 @@ import subprocess
 import os
 
 # This scripts performs an IRCmax calculatiuon using ORCA.
-os.getenv
 orcaroot = os.getenv('ORCA_ROOT') # directory from which to call orca, make sure that you've activated an orca module
 memory = 16 # in GB, this will be multiplies by 1024 for openmpi
 procs = 8
