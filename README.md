@@ -13,7 +13,7 @@ This praticular project was a failiure, but attempted ot re-implement the FMO1+2
 
 I've included both the partial charge version and the charge cloud (ESP) version, which is based heavily on the CHELPG method. The included iPython notebook just allows for the interactive visualisation of the point cloud from the exported `.npy` matrix.
 
-## `slmItilities/2slm.sh`
+## `slmUtilities/2slm.sh`
 A job submitter for MonARCH and M3 that supports the automatic generation and submisison of `slm` files from ORCA, Psi4, and Gaussian input files. All the slurm settings are fully customisable, but where possible it will automatically detect the settings from the input file itself.
 
 It also supports a few more advanced tricks, like IFTTT notificaitons, file copying, software version selection, dependencies, working form the projects forlder instead of scratch, switching between normal and partner QoS, etc.

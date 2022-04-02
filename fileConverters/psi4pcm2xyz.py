@@ -1,5 +1,4 @@
-#!/home/adreas/miniconda3/bin/python
-
+#!python3
 import subprocess
 import os
 import sys
