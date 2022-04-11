@@ -83,9 +83,9 @@ def plot(degeneracyTol=0.05, ymax=10, ymin=-20, annotateSize=6, annotateOffset=0
     try:
         orbitals, labels, occupationCol, occupation = readORCAOrbs(infile)
     except:
-        print(f'Error reading orca input file:\n{infile}\nExiting...')
+        print(f'Error reading orca input file:\n"{infile}"\nExiting...')
         exit()
-        
+
     degen = makeDegeneracyList(orbitals, degeneracyTol)
 
     ax.scatter(degen, orbitals, marker='_', s=2000, color=occupationCol)
