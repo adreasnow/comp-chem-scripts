@@ -4,8 +4,11 @@ from matplotlib.colors import hsv_to_rgb
 import numpy as np
 import sys
 
-infile = sys.argv[1]
-# sys.
+try:
+    infile = sys.argv[1]
+except:
+    print('ORCA outpput file not provided, exiting')
+    exit()
 
 
 def readORCAOrbs(infile):
