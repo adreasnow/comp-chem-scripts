@@ -1,16 +1,19 @@
 #!/bin/bash
-	filename=`basename -s .out "$@"`
+for var in $@
+	do
+	filename=`basename -s .out "$var"`
 	echo "======================= $filename ======================="
-	orcachk=`cat "$@" | grep '* O   R   C   A *'`
-	gaussianchk=`cat "$@" | grep 'This is part of the Gaussian(R)'`
-	psi4chk=`cat "$@" | grep 'Psi4'`
+	orcachk=`cat "$var" | grep '* O   R   C   A *'`
+	gaussianchk=`cat "$var" | grep 'This is part of the Gaussian(R)'`
+	psi4chk=`cat "$var" | grep 'Psi4'`
 	if [[ $orcachk != '' ]]; then
-		cat "$@" | grep "Item                value                   Tolerance       Converged" -A 5 | tail -6
+		cat "$var" | grep "Item                value                   Tolerance       Converged" -A 5 | tail -6
 	elif [[ $gaussianchk != '' ]]; then
-		cat "$@" | grep 'Converged' -A 4 | tail -11
+		cat "$var" | grep 'Converged' -A 4 | tail -11
 	elif [[ $psi4chk != '' ]]; then
-		cat "$@" | grep '~'
+		cat "$var" | grep '~'
 	fi
-
+	echo ""
+done
 
 
