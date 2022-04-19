@@ -430,7 +430,7 @@ for var in $@
 			touch "$FILEPATH/$FILENAME.out"
 		fi
 
-		~/bin/dos2unix "$FILEPATH/$FILENAME.slm"
+		dos2unix "$FILEPATH/$FILENAME.slm"
 
 		if [[ $depjob == "true" ]]; then
 			depcommand="-d afterany:${depends}"

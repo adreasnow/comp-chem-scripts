@@ -9,8 +9,7 @@
 	elif [[ $gaussianchk != '' ]]; then
 		cat "$@" | grep 'Converged' -A 4 | tail -11
 	elif [[ $psi4chk != '' ]]; then
-		echo "Adrea needs to finish off this script..."
-		# cat "$@" | grep 'Converged' -A 4
+		cat "$@" | grep '~'
 	fi
 
 
