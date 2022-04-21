@@ -26,7 +26,7 @@ def read_args():
     parser.add_argument(
         "-E",
         "--energy",
-        default='nm',
+        default=['nm'],
         help="Units of energy to plot ([nm]/ev/w)",
         nargs=1,
         required=False,
@@ -154,7 +154,7 @@ def main():
         fluorDict = readSpectrum(args.emission[0], args.energy[0], args.normalise)
         dicts += [['Emission', fluorDict]]
     
-        plot(dicts, [plotTotal, args.ht, args.fc], args.energy[0], xrange)
+    plot(dicts, [plotTotal, args.ht, args.fc], args.energy[0], xrange)
 
 
 
