@@ -12,8 +12,8 @@ except:
 
 
 def readORCAOrbs(infile):
-    f = open(infile, "r")
-    lines = f.readlines()
+    with open(infile, "r") as f:
+        lines = f.readlines()
     mark = []
     orbitals = []
     labels = []
