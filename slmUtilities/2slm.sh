@@ -187,6 +187,7 @@ for var in $@
 	".in") inp="psi4";;
 	"inp") inp="orca";;
 	"gjf") inp="gaussian";;
+	"mop") inp="mopac";;
 	*)     inp="none";;
 	esac
 	if [[ $inp == "orca" ]]; then 
@@ -227,6 +228,11 @@ for var in $@
 			PROCS=`cat "$FULLFILEPATH" | grep -i nprocs | cut -d'=' -f2`
 			MEM=`cat "$FULLFILEPATH" | grep mem | cut -d'=' -f2 | cut -d'G' -f1`
 			FILENAME=`/bin/basename -s .gjf "$FULLFILEPATH"`
+			;;
+		"mopac")
+			PROCS=""
+			MEM=""
+			FILENAME=`/bin/basename -s .mop "$FULLFILEPATH"`
 			;;
 		esac
 
@@ -419,6 +425,13 @@ for var in $@
 			echo "module load gaussian/g16a03"													>> "$FILEPATH/$FILENAME.slm"
 			echo ""																				>> "$FILEPATH/$FILENAME.slm"
 			echo "cat \"$FULLFILEPATH\" | G16 > \"$FILEPATH/$FILENAME.out\" 2>&1"				>> "$FILEPATH/$FILENAME.slm"
+			;;
+		"mopac")
+				echo "source /monfs00/projects/p2015120004/apps/mopac/activate_mopac.sh"		>> "$FILEPATH/$FILENAME.slm"
+				setupscratch
+				copyfiles
+				echo "/usr/bin/time -v mopac \"$FULLFILEPATH\""									>> "$FILEPATH/$FILENAME.slm"
+				copyscratch
 			;;
 		esac
 
