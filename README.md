@@ -42,3 +42,9 @@ Plots the `.spectrum` files that are output from ORCA's ESD module.
 
 ## `optUtilities/chkoptenergy.py`
 Takes the output from an ORCA/Psi4/Gaussian opt job and plots the energy so that you you can see the optimiser progress.
+
+## `optUtilities/rmsdGeom.py`
+Takes two `.xyz` and compares them atom for atom.
+* Does not orient the molecues on top of each toher
+* Assumes all atoms are in the same order
+* If multi-geom XYZ file is used, it will read the last geom

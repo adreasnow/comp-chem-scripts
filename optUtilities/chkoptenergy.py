@@ -20,15 +20,23 @@ for infile in infilelist:
     x = []
     if "Psi4" in inputfile:
         print("Psi4")
+        prog = 'psi4'
         searchterm = "Total Energy = "
         
     elif "This is part of the Gaussian(R)" in inputfile:
         print("Gaussian")
+        prog = 'gaussian'
         searchterm = "SCF Done:  E("
 
     elif "* O   R   C   A *" in inputfile:
         print("ORCA")
+        prog = 'orca'
         searchterm = "FINAL SINGLE POINT ENERGY"
+
+    elif " x T B" in inputfile:
+        print('XTB')
+        prog = 'xtb'
+        searchterm = 'total energy  :'
     
     inputfile = inputfile.split("\n")
 
@@ -38,12 +46,17 @@ for infile in infilelist:
         if searchterm in i:
             yrawlist += [i]
     
-    for i in yrawlist:
-        for j in i.split():
-            try:
-                y += [float(j)]
-            except:
-                pass
+    if prog in ['psi4', 'gaussian', 'orca']:
+        for i in yrawlist:
+            for j in i.split():
+                try:
+                    y += [float(j)]
+                except:
+                    pass
+
+    if prog in ['xtb']:
+        for i in yrawlist:
+            y += [float(i.split()[4])]
 
     for i in range(len(y)):
         y[i] = float(y[i])

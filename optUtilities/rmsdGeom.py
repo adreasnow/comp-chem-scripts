@@ -8,10 +8,15 @@ def xyz2mat(infile):
         lines = f.readlines()
     
     outarray = []
-    for line in lines[2:]:
-        splitline = line.split()
-        outarray += [[float(splitline[1]), float(splitline[2]), float(splitline[3])]]
+    for line in lines:
+        if line != '':
+            try:
+                splitline = line.split()
+                outarray += [[float(splitline[1]), float(splitline[2]), float(splitline[3])]]
+            except:
+                outarray = []
     return outarray
+    
 
 def rmsd(mat1, mat2):
     sumlist = []
