@@ -161,6 +161,14 @@ def read_args():
         action="store_true"
     )
     parser.add_argument(
+        "-l",
+        "--local",
+        help="Uses the local /mnt/scratch instead of the project's scratch",
+        default=False,
+        required=False,
+        action="store_true"
+    )
+    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
@@ -174,7 +182,7 @@ def setupScratch():
     global fullFilePath
     global fileName
     scratchStr += '# Setting up the scratch directory\n'
-    scratchStr += f'mkdir "{scratchDir}"'
+    scratchStr += f'mkdir -p "{scratchDir}"'
     scratchStr += f'\ncp "{fullFilePath}" "{scratchDir}"'
     scratchStr += f'\ncd "{scratchDir}"\n'
     for file in copy:
@@ -188,7 +196,7 @@ def copyScratch():
     global filePath
     global fileName
     scratchStr += '# copying files from the scratch directory\n'
-    scratchStr += f'mkdir "{filePath}/{fileName}"\n'
+    scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
     scratchStr += f'cp -r {scratchDir}/* "{filePath}/{fileName}/" && '
     scratchStr += f'rm -rf {scratchDir}\n'
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}/"\n\n'
@@ -256,15 +264,14 @@ def runOrca(args):
     if orcaVersion == 5: scratchStr += f'source {project}/apps/orca_5.0.3/activate_orca.sh\n\n'
     if orcaVersion == 4: scratchStr += 'module unload orca/4.2.1\nmodule load orca/4.2.1-216\n\n'
 
-    mpiargs="--mca btl_openib_warn_no_device_params_found 0 --mca pml ob1 --mca btl ^openib"
     if args.projectdir == True:
-        scratchStr += f'mkdir "{filePath}/{fileName}"\n'
+        scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
         scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
         scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" "{mpiargs}" > "{filePath}/{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1\n\n'
     else:
         setupScratch()
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" "{mpiargs}" > "{filePath}/{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1\n\n'
         copyScratch()
     return
 
@@ -276,25 +283,25 @@ def runPsi4(args):
     global homePath
     global scratchDir
     scratchStr += f'# Running Psi4 job\n'
-    if float(args.version) in [1.3, 1.4, 1.5]:
+    if float(args.version) in [1.3, 1.4, 1.5, 1.6]:
         psi4Version = float(args.version)
         print(f'Using Psi4 {psi4Version}')
     else:
         if float(args.version) == 0.0:
-            psi4Version = 1.5
+            psi4Version = 1.6
             print(f'Using Psi4 {psi4Version}')
         else:
             print(f'Psi4 verison {args.version} not recognised')
-            psi4Version = 1.5
+            psi4Version = 1.6
             print(f'Using Psi4 {psi4Version}')
     
     if psi4Version == 1.3: scratchStr += 'module load psi4/v1.3.2\n\n'
-    if psi4Version in [1.4, 1.5]: scratchStr += f'source {project}/apps/psi4-{psi4Version}/activate_psi4.sh\n\n'
+    if psi4Version in [1.4, 1.5, 1.6]: scratchStr += f'source {project}/apps/psi4-{psi4Version}/activate_psi4_job.sh\n\n'
 
     scratchStr += f'export PSIPATH=$PSIPATH:{homePath}/basis\n'
     if args.projectdir == True:
         scratchStr += f'export PSI_SCRATCH="{filePath}/{fileName}"\n'
-        scratchStr += f'mkdir "{filePath}/{fileName}"\n'
+        scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
         scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
         scratchStr += f'cd "{filePath}/{fileName}"\n'
         scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{fileName}.out" 2>&1\n\n'
@@ -386,6 +393,7 @@ def main():
     global copy
     global project
     global homePath
+
     fileEXTs = {'mop': 'mopac', 'inp': 'orca', 'gjf': 'gaussian', 'com': 'gaussian', '.in': 'psi4'}
     hostname = os.uname().nodename
 
@@ -407,6 +415,7 @@ def main():
         print('Cluster not recognised.\nExiting...')
         exit()
 
+
     args = read_args()
     for arg in args.files:
         if arg.startswith('-'):
@@ -414,6 +423,8 @@ def main():
             exit() 
     notify = args.notify
     copy = args.copy
+    if args.local == True:
+        scratch = '/mnt/scratch'
 
 
 
@@ -434,7 +445,10 @@ def main():
 
         filePath = '/'.join(fullFilePath.split('/')[0:-1])
         fileName = infile.split('/')[-1].split('.')[0]
+    
+
         scratchDir = f'{scratch}/{fileName}'
+
 
         procs, mem, tpn = extractParams(fullFilePath, program, args)
         timestring, part, qos = setupTime(args, host)
