@@ -313,6 +313,23 @@ def runPsi4(args):
 
     return
 
+def runQChem(procs, user):
+    global fullFilePath
+    global scratchStr
+    global fileName
+    scratchStr += '\n# Set up environment\n' 
+    scratchStr += f'export QCSCRATCH=/home/{user}/scratch\n'
+    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/qchem/qcenv.sh\n\n'
+    scratchStr += '# Setting up the scratch directory\n' 
+    scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
+    scratchStr += f'cp "{fullFilePath}" "{filePath}/{fileName}"\n'
+    scratchStr += f'cd "{filePath}/{fileName}"\n\n'
+    scratchStr += '# Run Q-Chem\n' 
+    scratchStr += f'/usr/bin/time -v qchem -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"\n\n'
+    scratchStr += '# Copy log file over\n' 
+    scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}"\n\n'
+    return
+
 def extractParams(file, program, args):
     with open(file, 'r') as f:
         lines = f.readlines()
@@ -321,25 +338,27 @@ def extractParams(file, program, args):
     
     for line in lines:
         if program == 'gaussian':
-            if 'nprocs' in line:
+            if 'nprocs' in line.lower():
                 procs = int(line.split('=')[1])
-            if 'mem' in line:
+            if 'mem' in line.lower():
                 mem = int(''.join([s for s in list(line.split('=')[1]) if s.isdigit()]))
         if program == 'orca':
-            if 'nprocs' in line:
+            if 'nprocs' in line.lower():
                 procs = int(line.split()[1])
-            if 'maxcore' in line:
+            if 'maxcore' in line.lower():
                 mem = int(line.split()[1])
         if program == 'psi4':
-            if 'set_num_threads' in line:
+            if 'set_num_threads' in line.lower():
                 procs = int(line.split('(')[1].split(')')[0])
-            if 'memory' in line:
+            if 'memory' in line.lower():
                 mem = int(''.join([s for s in list(line.split()[1]) if s.isdigit()]))
-
+        if program == 'qchem':
+            if 'mem_total' in line.lower():
+                mem = int(round(int(line.split()[1])/1024, 0))
         if program == 'mopac':
-            if 'THREADS' in line:
+            if 'threads' in line.lower():
                 for i in line.split():
-                    if 'THREADS' in i:
+                    if 'threads' in i:
                         procs = int(i.split('=')[1])
 
     if program == 'orca':
@@ -350,9 +369,12 @@ def extractParams(file, program, args):
         print('Memory not identified, using 32GB default')
         mem = 32
 
+    procs = args.cpus[0] if args.cpus != [0] else procs
+
     if procs == 0:
-        print('Number of cores not identified, using 1 default')
-        procs = 1
+        procs = 1 if program != 'qchem' else 16
+        print(f'Number of cores not identified, using {procs} default')
+        
     
     tpn = args.ntpn[0] if args.ntpn[0] != 0 else procs
 
@@ -443,6 +465,14 @@ def main():
             print('File type not recognised.\nNot processing.')
             continue
 
+        #if .inp, then check if qchem
+        if program == 'orca' or program == 'psi4':
+            with open(fullFilePath, 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                if '$rem' in line:
+                    program = 'qchem'
+
         filePath = '/'.join(fullFilePath.split('/')[0:-1])
         fileName = infile.split('/')[-1].split('.')[0]
     
@@ -460,6 +490,7 @@ def main():
         scratchStr += f'#SBATCH --mem={mem}GB\n'
         scratchStr += f'#SBATCH --qos={qos}\n' if len(qos) > 0 else ''
         scratchStr += f'#SBATCH --partition={part}\n' if len(part) > 0 else ''
+        scratchStr += f'#SBATCH --nodelist=hi01\n' if program == 'qchem' else ''
         if args.email == True: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
         if hostname == 'm3': scratchStr += f'#SBATCH --account={account}\n' 
         scratchStr += f'\nexport PROJECT="{account}"\n\n'
@@ -471,6 +502,7 @@ def main():
         if program == 'mopac': runMopac(args)
         if program == 'orca': runOrca(args)
         if program == 'psi4': runPsi4(args)
+        if program == 'qchem': runQChem(procs, user)
 
         if notify == True: notifyCall('finished')
 
