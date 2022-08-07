@@ -18,7 +18,16 @@ A job submitter for MonARCH and M3 that supports the automatic generation and su
 
 It also supports a few more advanced tricks, like IFTTT notificaitons, file copying, software version selection, dependencies, working form the projects forlder instead of scratch, switching between normal and partner QoS, etc.
 
+## `fileConverters/lpg2prm.py`
+
+This script is designed as a simple tool to help build Q-Chem inputs that require MM parameters. It's set up so that you can download and extract the output from [ligpargen](http://zarbi.chem.yale.edu/ligpargen/) and run the script as `lpg2prm.py tmp/*` pointing to the folder of all the output files.
+
+The only files it really needs are the `.xyz` (which is output with atom types and adjacency list), and the `.prm`.
+
+It will print the \$molecule section of the Q-Chem input to the terminal and will write the `.prm` to the directory it obtained the `.xyz` file from as `<filename>-qchem.prm`
+
 ## `compoundScripts/orcaIRCMax.py`
+
 Brings the functionality of the Gaussian IRCmax process to ORCA.
 * It will create a directory called `scratch` in the location that it's called from, so cd where you want it before you call it
 * Takes the `ORCA_ROOT` environment variable, so be sure to source ORCA or load the orca module in your slurm script
