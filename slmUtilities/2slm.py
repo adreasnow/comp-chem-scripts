@@ -6,6 +6,7 @@ import subprocess
 from time import sleep
 from pathlib import Path
 
+
 def read_args():
     parser = argparse.ArgumentParser(
         description=(
@@ -196,9 +197,9 @@ def copyScratch():
     global filePath
     global fileName
     scratchStr += '# copying files from the scratch directory\n'
-    scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
-    scratchStr += f'cp -r {scratchDir}/* "{filePath}/{fileName}/" && '
-    scratchStr += f'rm -rf {scratchDir}\n'
+    # scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
+    scratchStr += f'cp -r "{scratchDir}" "{filePath}/{fileName}" && '
+    scratchStr += f'rm -rf "{scratchDir}"\n'
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}/"\n\n'
     return
 
