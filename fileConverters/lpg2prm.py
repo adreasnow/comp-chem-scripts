@@ -58,87 +58,51 @@ def ff2adj(xyzfile, keyfile, nameroot):
                 torsionList += [line]
             elif splitLine[0] == 'charge':
                 atomDict[splitLine[1]] += [float(splitLine[2])]
-            elif splitLine[0] == 'vdwindex':
-                vdwindex = splitLine[1]
-            elif splitLine[0] == 'vdwtype':
-                vdwtype = splitLine[1]
             elif splitLine[0] == 'radiusrule':
                 radiusrule = splitLine[1]
-            elif splitLine[0] == 'radiustype':
-                radiustype = splitLine[1]
             elif splitLine[0] == 'radiussize':
                 radiussize = splitLine[1]
             elif splitLine[0] == 'epsilonrule':
                 epsilonrule = splitLine[1]
-            elif splitLine[0] == 'torsionunit':
-                torsionunit = splitLine[1]
-            elif splitLine[0] == 'imptorunit':
-                imptorunit = splitLine[1]
             elif splitLine[0] == 'vdw-14-scale':
                 vdw14scale = splitLine[1]
             elif splitLine[0] == 'chg-14-scale':
                 chg14scale = splitLine[1]
-            elif splitLine[0] == 'electric':
-                electric = splitLine[1]
-            elif splitLine[0] == 'dielectric':
-                dielectric = splitLine[1]
-            elif splitLine[0] == 'forcefield':
-                forcefield = splitLine[1]
+
         except:
             pass
 
 
-    prmString = '''
-
-
-      ##############################
-      ##                          ##
-      ##  Force Field Definition  ##
-      ##                          ##
-      ##############################
-
-'''
-    prmString += f'forcefield              {forcefield}\n\n'
-
-    prmString += f'vdwindex                {vdwindex}\n'
-    prmString += f'vdwtype                 {vdwtype}\n'
-    prmString += f'radiusrule              {radiusrule}\n'
-    prmString += f'radiustype              {radiustype}\n'
-    prmString += f'radiussize              {radiussize}\n'
-    prmString += f'epsilonrule             {epsilonrule}\n'
-    prmString += f'imptortype              HARMONIC\n'
-    prmString += f'torsionunit             {torsionunit}\n'
-    prmString += f'imptorunit              {imptorunit}\n'
+    prmString  = f'RadiusRule              {radiusrule}\n'
+    prmString += f'EpsilonRule             {epsilonrule}\n'
+    prmString += f'RadiusSize              {radiussize}\n'
+    prmString += f'ImptorType              TRIGONOMETRIC\n'
     prmString += f'vdw-14-scale            {vdw14scale}\n'
     prmString += f'chg-14-scale            {chg14scale}\n'
-    prmString += f'electric                {electric}\n'
-    prmString += f'dielectric              {dielectric}\n\n'
-    prmString += f'natom {len(atomDict)}\n'
-    prmString += f'nvdw {len(atomDict)}\n\n'
+    prmString += f'torsion-scale           1.0\n'
+    prmString += f'NAtom {len(atomDict)}\n'
+    prmString += f'Nvdw {len(atomDict)}\n'
 
 
 
     for atom in atomDict:
-        prmString += f'atom     {atom}    {atomDict[atom][1]:10f}     {atom}     {atomDict[atom][0]}\n'
-    prmString += '\n\n\n'
+        prmString += f'Atom        {int(atom):<12d} {atomDict[atom][1]:< 6.4f}         {int(atom):<15d} {atomDict[atom][0]:20s}\n'
     for vdw in vdwList:
         prmString += vdw
-    prmString += '\n\n\n'
     for bond in bondList:
-        prmString += bond
-    prmString += '\n\n\n'
+        prmString += f'B{bond[1:]}'
     for angle in angleList:
-        prmString += angle
-    prmString += '\n\n\n'
-    for ub in ubList:
-        prmString += ub
-    prmString += '\n\n\n'
-    for imptor in imptorsList:
-        prmString += imptor
-    prmString += '\n\n\n'
+        prmString += f'A{angle[1:]}'
     for torsion in torsionList:
-        prmString += torsion
-    prmString += '\n\n\n'
+        split = torsion.split()
+        prmString += f'T{torsion[1:]}'
+    for imptor in imptorsList:
+        prmString += f'Improper{imptor[8:]}'
+    for ub in ubList:
+        split = ub.split()
+        prmString += f'UreyBrad{ub[8:]}'
+
+
 
     with open(f'{nameroot}-qchem.prm', 'w+') as f:
         f.write(prmString)
