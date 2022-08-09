@@ -514,7 +514,7 @@ def main():
 
         depcommand = f'-d afterany:{args.dependency}' if args.dependency > 0 else ''
         if args.submit == True:
-            command = f'cd "{filePath}" & sbatch {depcommand} "{filePath}/{fileName}.slm"'
+            command = f'cd "{filePath}"; sbatch {depcommand} "{filePath}/{fileName}.slm"'
             proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, executable='/bin/bash')
             output = proc.stdout.strip('\n')
             if output != "": print(output)
