@@ -18,7 +18,7 @@ A job submitter for MonARCH and M3 that supports the automatic generation and su
 
 It also supports a few more advanced tricks, like IFTTT notificaitons, file copying, software version selection, dependencies, working form the projects forlder instead of scratch, switching between normal and partner QoS, etc.
 
-~~## `fileConverters/lpg2prm.py`~~
+## ~~`fileConverters/lpg2prm.py`~~
 
 ~~This script is designed as a simple tool to help build Q-Chem inputs that require MM parameters. It's set up so that you can download and extract the output from [ligpargen](http://zarbi.chem.yale.edu/ligpargen/) and run the script as `lpg2prm.py tmp/*` pointing to the folder of all the output files.~~
 
