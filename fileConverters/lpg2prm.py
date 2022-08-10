@@ -86,7 +86,7 @@ def ff2adj(xyzfile, keyfile, nameroot):
 
 
     for atom in atomDict:
-        prmString += f'Atom        {int(atom):<12d} {atomDict[atom][1]:< 6.4f}         {int(atom):<15d} {atomDict[atom][0]:20s}\n'
+        prmString += f'Atom        {int(atom):<12d} {atomDict[atom][1]:< 6.4f}         {int(atom):<15d}\n'
     for vdw in vdwList:
         prmString += vdw
     for bond in bondList:
