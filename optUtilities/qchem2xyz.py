@@ -1,8 +1,31 @@
 #! python3
-import sys
+import argparse
 
 
-for file in sys.argv[1:]:
+def read_args():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Slurm script importer for MonARCH/M3"
+        )
+    )
+    parser.add_argument(
+        "-f",
+        "--first",
+        help='take the first n atoms from the xyz',
+        nargs=1,
+        default=[0],
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
+        'files', 
+        nargs=argparse.REMAINDER
+    )
+    return parser.parse_args()
+
+args = read_args()
+
+for file in args.files:
 	with open(file, 'r') as f:
 		lines = f.readlines()
 
@@ -19,6 +42,9 @@ for file in sys.argv[1:]:
 		if 'New Cartesian Coordinates Obtained' in line and geomLen != 0:
 			xyzBuffer = ''
 			xyzPosList += [count + 7]
+
+	if args.first != [0]:
+		geomLen = args.first[0]
 
 	xyzBuffer = ''
 	for xyzPos in xyzPosList:
