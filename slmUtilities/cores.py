@@ -27,8 +27,8 @@ for line in queueOut:
 
 print(f'\nCores used on running jobs:\n---------------------------')
 tableList = [['Queue', '#running', '#total', '#free'], 
-             ['partner', runningQueues["partner"], 120, 120-int(runningQueues["partner"])], 
-             ['normal', runningQueues["normal"], 120, 120-int(runningQueues["normal"])]]
+             ['partner', runningQueues["partner"], 144, 144-int(runningQueues["partner"])], 
+             ['normal', runningQueues["normal"], 144, 144-int(runningQueues["normal"])]]
 
 print(tabulate(tableList, headers='firstrow'))
 
