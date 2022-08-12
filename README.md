@@ -53,7 +53,7 @@ A useful tool to plot orbital energy levels from ORCA output files, and will als
 ## `energyExtractors/pltSpectrum.py`
 Plots the `.spectrum` files that are output from ORCA's ESD module.
 
-## `optUtilities/chkopt.py` (formerly `chkoptenrgy.py`, `chkoptprogress.py`, and `chkopttransition.py`)
+## `optUtilities/chkopt.py` (formerly `chkopt.sh`, `chkoptenergy.py`, `chkoptprogress.sh`, and `chkopttransition.py`)
 Takes the output from an ORCA/Psi4/Gaussian/Q-Chem/XTB opt job and plots the energy so that you you can see the optimiser progress.
 * Optional `-t` flag to plot the transition energy of ORCA/Q-Chem jobs with optional  `-r` flag to set the root (uses root 1 by default)
 * Optional `-p` flag to print the optimisation convergence progress
