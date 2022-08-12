@@ -13,7 +13,7 @@ This praticular project was a failiure, but attempted ot re-implement the FMO1+2
 
 I've included both the partial charge version and the charge cloud (ESP) version, which is based heavily on the CHELPG method. The included iPython notebook just allows for the interactive visualisation of the point cloud from the exported `.npy` matrix.
 
-## `slmUtilities/2slm.sh`
+## `slmUtilities/2slm.py` (formerly `2slm.sh`)
 A job submitter for MonARCH and M3 that supports the automatic generation and submisison of `slm` files from ORCA, Psi4, and Gaussian input files. All the slurm settings are fully customisable, but where possible it will automatically detect the settings from the input file itself.
 
 It also supports a few more advanced tricks, like IFTTT notificaitons, file copying, software version selection, dependencies, working form the projects forlder instead of scratch, switching between normal and partner QoS, etc.
@@ -53,8 +53,10 @@ A useful tool to plot orbital energy levels from ORCA output files, and will als
 ## `energyExtractors/pltSpectrum.py`
 Plots the `.spectrum` files that are output from ORCA's ESD module.
 
-## `optUtilities/chkoptenergy.py`
-Takes the output from an ORCA/Psi4/Gaussian opt job and plots the energy so that you you can see the optimiser progress.
+## `optUtilities/chkopt.py` (formerly `chkoptenrgy.py`, `chkoptprogress.py`, and `chkopttransition.py`)
+Takes the output from an ORCA/Psi4/Gaussian/Q-Chem/XTB opt job and plots the energy so that you you can see the optimiser progress.
+* Optional `-t` flag to plot the transition energy of ORCA/Q-Chem jobs with optional  `-r` flag to set the root (uses root 1 by default)
+* Optional `-p` flag to print the optimisation convergence progress
 
 ## `optUtilities/rmsdGeom.py`
 Takes two `.xyz` and compares them atom for atom.
