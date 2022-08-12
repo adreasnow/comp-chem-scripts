@@ -18,6 +18,15 @@ def read_args():
         required=False,
     )
     parser.add_argument(
+        "-o",
+        "--out",
+        help='optional output file path/name.xyz',
+        nargs=1,
+        default=[''],
+        type=str,
+        required=False,
+    )
+    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
@@ -53,7 +62,13 @@ for file in args.files:
 			line = lines[i]
 			xyzBuffer += f'{line.split()[1]} {float(line.split()[2]): >20.12f} {float(line.split()[3]): >20.12f} {float(line.split()[4]): >20.12f}\n'
 
-	with open(f'{file.split(".")[0]}.xyz', 'w+') as f:
+	if args.out[0] == '':
+		outFile = f'{file.split(".")[0]}.xyz'
+	else:
+		outFile = args.out[0]
+
+
+	with open(outFile, 'w+') as f:
 		f.write(xyzBuffer)
 
 
