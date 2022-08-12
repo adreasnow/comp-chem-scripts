@@ -48,6 +48,12 @@ def nmToEv(nm):
 args = read_args()
 labelname = []
 
+if args.progress == False:
+    plot = True
+    fig = plt.figure(figsize=(12,5))
+else:
+    plot = False
+
 for infile in args.files:
     with open(infile, "r") as file:
         lines = file.readlines()
@@ -71,7 +77,7 @@ for infile in args.files:
 
 
     if args.transition == True:
-        plot = True
+        
         x = []
         y = []
         
@@ -94,7 +100,6 @@ for infile in args.files:
             print('XTB transitions not implemnted')
             exit()
     elif args.progress == True:
-        plot = False
         outString = []
         if prog == 'orca':
             for count, line in enumerate(lines):
@@ -141,10 +146,7 @@ for infile in args.files:
             for i in outString[-((lineCount*2)+3):]:
                 print(i.strip('\n'))
         
-
-
     else:
-        plot = True
         x = []
         y = []
         if prog == 'orca':
@@ -174,7 +176,6 @@ for infile in args.files:
 
 
     if plot == True:        
-        fig = plt.figure(figsize=(12,5))
         ax = fig.add_subplot(111)
         if args.transition == True: ax.set_ylabel("Excitation Energy (eV)")
         else: ax.set_ylabel("Energy (Eh)")
