@@ -11,9 +11,9 @@ def read_args():
     parser.add_argument(
         "-r",
         "--root",
-        help='Root to follow',
+        help='Root to follow. If plotting the energy, this will force it to look for the energy of the specific root.',
         nargs=1,
-        default=[1],
+        default=[0],
         type=int,
         required=False,
     )
@@ -47,6 +47,8 @@ def nmToEv(nm):
 
 args = read_args()
 labelname = []
+prog = ''
+root = args.root[0]
 
 if args.progress == False:
     plot = True
@@ -58,7 +60,7 @@ for infile in args.files:
     with open(infile, "r") as file:
         lines = file.readlines()
 
-    for line in lines[0:100]:
+    for line in lines:
         if "Welcome to Q-Chem" in line:
             print("Q-Chem")
             prog = 'qchem'
@@ -74,21 +76,24 @@ for infile in args.files:
         elif " x T B" in line:
             print('XTB')
             prog = 'xtb'
+        elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and args.root[0] == 0:
+            root = line.split()[1]
 
 
     if args.transition == True:
-        
+        if args.root == [0]:
+            root = 1
         x = []
         y = []
         
         if prog == 'orca':
             for count, line in enumerate(lines):
                 if 'ABSORPTION SPECTRUM VIA TRANSITION ELECTRIC DIPOLE MOMENTS' in line:
-                    y += [nmToEv(float(lines[count+4+args.root[0]].split()[2]))]
+                    y += [nmToEv(float(lines[count+4+root].split()[2]))]
 
         elif prog == 'qchem':
             for line in lines:
-                if f'{args.root[0]}: excitation energy (eV) =' in line:
+                if f'{root}: excitation energy (eV) =' in line:
                     y += [float(line.split()[7])]
         elif prog == 'gaussian':
             print('Gaussian transitions not implemnted')
@@ -120,7 +125,6 @@ for infile in args.files:
                     outString += ['--']
             for i in outString[-((lineCount*2)+3):]:
                 print(i.strip('\n'))
-
         elif prog == 'gaussian':
             for count, line in enumerate(lines):
                 lineCount = 5
@@ -146,19 +150,20 @@ for infile in args.files:
             for i in outString[-((lineCount*2)+3):]:
                 print(i.strip('\n'))
         
-    else:
+    else: 
         x = []
         y = []
         if prog == 'orca':
             for count, line in enumerate(lines):
-                if 'FINAL SINGLE POINT ENERGY' in line:
+                if 'FINAL SINGLE POINT ENERGY' in line and args.root == [0]:
                     y += [float(line.split()[4])]
 
         elif prog == 'qchem':
             for line in lines:
-                if f'Total energy in the final basis set = ' in line:
+                if f'Total energy in the final basis set = ' in line and root == 0:
                     y += [float(line.split()[8])]
-
+                elif f'Total energy for state  {root}:' in line and root != 0:
+                    y += [float(line.split()[5])]
         elif prog == 'gaussian':
             for line in lines:
                 if ' SCF Done:' in line:
