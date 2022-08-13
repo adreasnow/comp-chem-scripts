@@ -45,18 +45,9 @@ def nmToEv(nm):
     eV = (h*c)/(nm*1e-9)
     return eV
 
-args = read_args()
-labelname = []
-prog = ''
-root = args.root[0]
-
-if args.progress == False:
-    plot = True
-    fig = plt.figure(figsize=(12,5))
-else:
-    plot = False
-
-for infile in args.files:
+def identifyProg(file, args):
+    prog = ''
+    root = args.root[0]
     with open(infile, "r") as file:
         lines = file.readlines()
 
@@ -76,108 +67,134 @@ for infile in args.files:
         elif " x T B" in line:
             print('XTB')
             prog = 'xtb'
-        elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and args.root[0] == 0:
+        elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and root == 0:
             root = line.split()[1]
+        
+    return prog, lines, root
 
+def extractTransition(prog, lines, root):
+    if root == 0: root = 1
+    y = []
+    
+    if prog == 'orca':
+        for count, line in enumerate(lines):
+            if 'ABSORPTION SPECTRUM VIA TRANSITION ELECTRIC DIPOLE MOMENTS' in line:
+                y += [nmToEv(float(lines[count+4+root].split()[2]))]
+
+    elif prog == 'qchem':
+        for line in lines:
+            if f'{root}: excitation energy (eV) =' in line:
+                y += [float(line.split()[7])]
+    elif prog == 'gaussian':
+        print('Gaussian transitions not implemnted')
+        exit()
+    elif prog == 'psi4':
+        print('Psi4 transitions not implemnted')
+        exit()
+    elif prog == 'xtb':
+        print('XTB transitions not implemnted')
+        exit()
+    return [],  y
+
+def extractProgress(prog, lines):
+    outString = []
+    if prog == 'orca':
+        for count, line in enumerate(lines):
+            lineCount = 7
+            if 'Geometry convergence' in line:
+                for i in range(lineCount):
+                    outString += [lines[count+i]]
+                outString += ['--']
+        for i in outString[-((lineCount*2)+3):]:
+            print(i.strip('\n'))
+
+    elif prog == 'qchem':
+        for count, line in enumerate(lines):
+            lineCount = 4
+            if 'Maximum     Tolerance    Cnvgd?' in line:
+                for i in range(lineCount):
+                    outString += [lines[count+i]]
+                outString += ['--']
+        for i in outString[-((lineCount*2)+3):]:
+            print(i.strip('\n'))
+    elif prog == 'gaussian':
+        for count, line in enumerate(lines):
+            lineCount = 5
+            if 'Converged' in line:
+                for i in range(lineCount):
+                    outString += [lines[count+i]]
+                outString += ['--']
+        for i in outString[-((lineCount*2)+3):]:
+            print(i.strip('\n'))
+
+    elif prog == 'psi4':
+        for line in lines:
+            if '~' in line:
+                print(line)
+
+    elif prog == 'xtb':
+        for count, line in enumerate(lines):
+            lineCount = 4
+            if '* total energy  :' in line:
+                for i in range(lineCount):
+                    outString += [lines[count+i]]
+                outString += ['--']
+        for i in outString[-((lineCount*2)+3):]:
+            print(i.strip('\n'))
+    return
+
+def extractEnergy(prog, lines, args, root):
+    y = []
+    if prog == 'orca':
+        for line in lines:
+            if 'FINAL SINGLE POINT ENERGY' in line:
+                y += [float(line.split()[4])]
+
+    elif prog == 'qchem':
+        for line in lines:
+            if f'Total energy in the final basis set = ' in line and root == 0:
+                y += [float(line.split()[8])]
+            elif f'Total energy for state  {root}:' in line and root != 0:
+                y += [float(line.split()[5])]
+    elif prog == 'gaussian':
+        for line in lines:
+            if ' SCF Done:' in line:
+                y += [float(line.split()[4])]
+
+    elif prog == 'psi4':
+        for line in lines:
+            if 'Total Energy = ' in line:
+                y += [float(line.split()[3])]
+
+    elif prog == 'xtb':
+        for line in lines:
+            if 'total energy  :' in line:
+                y += [float(line.split()[4])]
+    return [],  y
+
+
+args = read_args()
+labelname = []
+
+if args.progress == False:
+    plot = True
+    fig = plt.figure(figsize=(12,5))
+else:
+    plot = False
+
+
+for infile in args.files:
+    prog, lines, root = identifyProg(infile, args)
 
     if args.transition == True:
-        if args.root == [0]:
-            root = 1
+        x, y = extractTransition(prog, lines, root)
         x = []
-        y = []
-        
-        if prog == 'orca':
-            for count, line in enumerate(lines):
-                if 'ABSORPTION SPECTRUM VIA TRANSITION ELECTRIC DIPOLE MOMENTS' in line:
-                    y += [nmToEv(float(lines[count+4+root].split()[2]))]
 
-        elif prog == 'qchem':
-            for line in lines:
-                if f'{root}: excitation energy (eV) =' in line:
-                    y += [float(line.split()[7])]
-        elif prog == 'gaussian':
-            print('Gaussian transitions not implemnted')
-            exit()
-        elif prog == 'psi4':
-            print('Psi4 transitions not implemnted')
-            exit()
-        elif prog == 'xtb':
-            print('XTB transitions not implemnted')
-            exit()
     elif args.progress == True:
-        outString = []
-        if prog == 'orca':
-            for count, line in enumerate(lines):
-                lineCount = 7
-                if 'Geometry convergence' in line:
-                    for i in range(lineCount):
-                        outString += [lines[count+i]]
-                    outString += ['--']
-            for i in outString[-((lineCount*2)+3):]:
-                print(i.strip('\n'))
-
-        elif prog == 'qchem':
-            for count, line in enumerate(lines):
-                lineCount = 4
-                if 'Maximum     Tolerance    Cnvgd?' in line:
-                    for i in range(lineCount):
-                        outString += [lines[count+i]]
-                    outString += ['--']
-            for i in outString[-((lineCount*2)+3):]:
-                print(i.strip('\n'))
-        elif prog == 'gaussian':
-            for count, line in enumerate(lines):
-                lineCount = 5
-                if 'Converged' in line:
-                    for i in range(lineCount):
-                        outString += [lines[count+i]]
-                    outString += ['--']
-            for i in outString[-((lineCount*2)+3):]:
-                print(i.strip('\n'))
-
-        elif prog == 'psi4':
-            for line in lines:
-                if '~' in line:
-                    print(line)
-
-        elif prog == 'xtb':
-            for count, line in enumerate(lines):
-                lineCount = 4
-                if '* total energy  :' in line:
-                    for i in range(lineCount):
-                        outString += [lines[count+i]]
-                    outString += ['--']
-            for i in outString[-((lineCount*2)+3):]:
-                print(i.strip('\n'))
+        extractProgress(prog, lines)
         
     else: 
-        x = []
-        y = []
-        if prog == 'orca':
-            for count, line in enumerate(lines):
-                if 'FINAL SINGLE POINT ENERGY' in line and args.root == [0]:
-                    y += [float(line.split()[4])]
-
-        elif prog == 'qchem':
-            for line in lines:
-                if f'Total energy in the final basis set = ' in line and root == 0:
-                    y += [float(line.split()[8])]
-                elif f'Total energy for state  {root}:' in line and root != 0:
-                    y += [float(line.split()[5])]
-        elif prog == 'gaussian':
-            for line in lines:
-                if ' SCF Done:' in line:
-                    y += [float(line.split()[4])]
-
-        elif prog == 'psi4':
-            for line in lines:
-                if 'Total Energy = ' in line:
-                    y += [float(line.split()[3])]
-
-        elif prog == 'xtb':
-            for line in lines:
-                if 'total energy  :' in line:
-                    y += [float(line.split()[4])]
+        x, y = extractEnergy(prog, lines, args, root)
 
 
     if plot == True:        
@@ -199,5 +216,6 @@ for infile in args.files:
         labelname += [str(str(infile.split("/")[-1].split(".")[0]))]
 
 if plot == True:    
+    if root != 0: print(f'Root = {root}')
     ax.legend(labelname)
     plt.show()
