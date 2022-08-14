@@ -1,6 +1,7 @@
 #!python3
 import matplotlib.pyplot as plt
 import argparse
+from time import sleep
 
 def read_args():
     parser = argparse.ArgumentParser(
@@ -34,6 +35,14 @@ def read_args():
         action="store_true"
     )
     parser.add_argument(
+        "-w",
+        "--watch",
+        help='"Watch" the file/s (refresh every 30 seconds)',
+        default=False,
+        required=False,
+        action="store_true"
+    )
+    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
@@ -46,6 +55,7 @@ def nmToEv(nm):
     return eV
 
 def identifyProg(file, args):
+    global printed
     prog = ''
     root = args.root[0]
     with open(infile, "r") as file:
@@ -53,19 +63,19 @@ def identifyProg(file, args):
 
     for line in lines:
         if "Welcome to Q-Chem" in line:
-            print("Q-Chem")
+            if printed == False: print("Q-Chem")
             prog = 'qchem'
         elif "* O   R   C   A *" in line:
-            print("ORCA")
+            if printed == False: print("ORCA")
             prog = 'orca'
         elif "Psi4" in line:
-            print("Psi4")
+            if printed == False: print("Psi4")
             prog = 'psi4'
         elif "This is part of the Gaussian(R)" in line:
-            print("Gaussian")
+            if printed == False: print("Gaussian")
             prog = 'gaussian'
         elif " x T B" in line:
-            print('XTB')
+            if printed == False: print('XTB')
             prog = 'xtb'
         elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and root == 0:
             root = line.split()[1]
@@ -94,7 +104,10 @@ def extractTransition(prog, lines, root):
     elif prog == 'xtb':
         print('XTB transitions not implemnted')
         exit()
-    return [],  y
+
+    x = []
+    for i in range(len(y)): x += [i]
+    return x,  y
 
 def extractProgress(prog, lines):
     outString = []
@@ -170,52 +183,77 @@ def extractEnergy(prog, lines, args, root):
         for line in lines:
             if 'total energy  :' in line:
                 y += [float(line.split()[4])]
-    return [],  y
+    x = []
+    for i in range(len(y)): x += [i]
+    return x,  y
 
+def plotFunc(infile, args):
+    global fig
+    global printed
+    global labelname
 
-args = read_args()
-labelname = []
-
-if args.progress == False:
-    plot = True
-    fig = plt.figure(figsize=(12,5))
-else:
-    plot = False
-
-
-for infile in args.files:
+    label = str(str(infile.split("/")[-1].split(".")[0]))
+    if printed == False: print(label)
     prog, lines, root = identifyProg(infile, args)
 
-    if args.transition == True:
-        x, y = extractTransition(prog, lines, root)
-        x = []
-
-    elif args.progress == True:
-        extractProgress(prog, lines)
-        
-    else: 
-        x, y = extractEnergy(prog, lines, args, root)
+    if args.transition == True: x, y = extractTransition(prog, lines, root)
+    else:                       x, y = extractEnergy(prog, lines, args, root)
 
 
-    if plot == True:        
-        ax = fig.add_subplot(111)
-        if args.transition == True: ax.set_ylabel("Excitation Energy (eV)")
-        else: ax.set_ylabel("Energy (Eh)")
-        ax.set_xlabel("OPT Iteration")
+    
+    ax = fig.add_subplot(111)
+    ax.set_xlabel("OPT Iteration")
+    if args.transition == True: ax.set_ylabel("Excitation Energy (eV)")
+    else:                       ax.set_ylabel("Energy (Eh)")
+
+    fig.gca().ticklabel_format(axis='both', style='plain', useOffset=False)
+    ax.plot(x, y, '.-')
 
 
-        fig.gca().ticklabel_format(axis='both', style='plain', useOffset=False)
+    
+    labelname += [label]
 
-        for i in range(len(y)):
-            y[i] = float(y[i])
+    if root != 0 and printed == False: print(f'Root = {root}')
 
-        for i in range(len(y)):
-            x.append(i)
-
-        ax.plot(x, y, '.-')
-        labelname += [str(str(infile.split("/")[-1].split(".")[0]))]
-
-if plot == True:    
-    if root != 0: print(f'Root = {root}')
+    
     ax.legend(labelname)
-    plt.show()
+    plt.draw()
+    return
+
+args = read_args()
+
+global labelname
+global printed
+labelname = []
+printed = False
+
+if args.progress == True:
+    if args.watch == True:
+        while True:
+            for infile in args.files:
+                label = str(str(infile.split("/")[-1].split(".")[0]))
+                if printed == False: print(label)
+                prog, lines, root = identifyProg(infile, args)
+                extractProgress(prog, lines)
+            printed = True
+            sleep(30)
+    else:
+        for infile in args.files:
+            prog, lines, root = identifyProg(infile, args)
+            extractProgress(prog, lines)
+            exit()
+
+global fig
+fig = plt.figure(figsize=(12,5))
+
+if args.watch == True: 
+    while True:
+        for infile in args.files:
+            plotFunc(infile, args)
+        printed = True
+        plt.pause(30)
+        plt.clf()  
+else:
+        for infile in args.files:
+            plotFunc(infile, args)
+        plt.show()
