@@ -50,6 +50,10 @@ for file in args.files:
             xyzBuffer = ''
             xyzPosList += [count + 7]
 
+        if ' LBFGS Step ' in line and geomLen != 0:
+            xyzBuffer = ''
+            xyzPosList += [count + 6]
+
     if args.first != [0]:
         geomLen = args.first[0]
 
