@@ -128,6 +128,9 @@ def extractProgress(prog, lines):
                 for i in range(lineCount):
                     outString += [lines[count+i]]
                 outString += ['--']
+            elif 'LBFGS Step' in line:
+                outString += [line]
+                outString += ['--']
         for i in outString[-((lineCount*2)+3):]:
             print(i.strip('\n'))
     elif prog == 'gaussian':
