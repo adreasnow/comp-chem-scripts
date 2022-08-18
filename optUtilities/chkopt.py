@@ -6,7 +6,7 @@ from time import sleep
 def read_args():
     parser = argparse.ArgumentParser(
         description=(
-            ""
+            "Chek optimisation progress for Q-Chem, Gaussian, Psi4 and ORCA files. Allows for plotting tddft transiiton energy, system energy, or printing the optimisation progress"
         )
     )
     parser.add_argument(
