@@ -43,6 +43,15 @@ def read_args():
         action="store_true"
     )
     parser.add_argument(
+        "-i",
+        "--interval",
+        help='if using -w, this specifies the interval to refresh',
+        nargs=1,
+        default=[30],
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
@@ -239,7 +248,7 @@ if args.progress == True:
                 prog, lines, root = identifyProg(infile, args)
                 extractProgress(prog, lines)
             printed = True
-            sleep(30)
+            sleep(args.interval[0])
     else:
         for infile in args.files:
             prog, lines, root = identifyProg(infile, args)
@@ -254,7 +263,7 @@ if args.watch == True:
         for infile in args.files:
             plotFunc(infile, args)
         printed = True
-        plt.pause(30)
+        plt.pause(args.interval[0])
         plt.clf()  
 else:
         for infile in args.files:
