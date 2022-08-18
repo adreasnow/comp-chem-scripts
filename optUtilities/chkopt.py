@@ -37,7 +37,7 @@ def read_args():
     parser.add_argument(
         "-w",
         "--watch",
-        help='"Watch" the file/s (refresh every 30 seconds)',
+        help='"Watch" the file/s (refresh every 30 seconds unless overridden with -i)',
         default=False,
         required=False,
         action="store_true"
