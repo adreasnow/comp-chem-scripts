@@ -54,6 +54,10 @@ for file in args.files:
             xyzBuffer = ''
             xyzPosList += [count + 6]
 
+        if 'Searching for Lambda that minimizes along all modes' in line and geomLen != 0:
+            xyzBuffer = ''
+            xyzPosList += [count + 8]
+
     if args.first != [0]:
         geomLen = args.first[0]
 
