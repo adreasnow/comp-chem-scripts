@@ -45,9 +45,18 @@ def read_args():
     parser.add_argument(
         "-i",
         "--interval",
-        help='if using -w, this specifies the interval to refresh',
+        help='If using -w, this specifies the interval to refresh',
         nargs=1,
         default=[30],
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
+        "-l",
+        "--last",
+        help='Only plots the last n steps',
+        nargs=1,
+        default=[0],
         type=int,
         required=False,
     )
@@ -219,7 +228,20 @@ def plotFunc(infile, args):
     else:                       ax.set_ylabel("Energy (Eh)")
 
     fig.gca().ticklabel_format(axis='both', style='plain', useOffset=False)
-    ax.plot(x, y, '.-')
+
+    if args.last[0] == 0:
+        ax.plot(x, y, '.-')
+    else:
+        try:
+            plotLen = len(x) if len(x) < args.last[0] else args.last[0]
+            y = y[-plotLen:]
+            x = list(range(plotLen))
+            ax.plot(x, y, '.-')
+        except Exception as e:
+            print(f'Problem with {label}:')
+            print(e)
+
+
 
 
     

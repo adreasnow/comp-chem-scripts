@@ -53,7 +53,7 @@ def ff2adj(xyzfile, keyfile):
 
     print(f'\n\n$force_field_params\n   NumAtomTypes {len(atomDict)+30}')
     for count, atom in enumerate(atomDict):
-        print(f'   AtomType {-count-1:7d} {atomDict[atom][1]:< 6.4f} {atomDict[atom][2]:< 6.4f} {atomDict[atom][3]:< 6.4f}')
+        print(f'   AtomType {-count-1:7d} {atomDict[atom][3]:< 6.4f} {atomDict[atom][1]:< 6.4f} {atomDict[atom][2]:< 6.4f}')
     print('$end')
 
 
