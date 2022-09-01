@@ -95,6 +95,9 @@ def identifyProg(file, args):
         elif " x T B" in line:
             if printed == False: print('XTB')
             prog = 'xtb'
+        # Root detection
+        elif prog == 'psi4' and 'follow_root' in line.lower() and root == 0:
+            root = line.split()[1]
         elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and root == 0:
             root = line.split()[1]
         
@@ -117,8 +120,9 @@ def extractTransition(prog, lines, root):
         print('Gaussian transitions not implemnted')
         exit()
     elif prog == 'psi4':
-        print('Psi4 transitions not implemnted')
-        exit()
+        for line in lines:
+            if f'EOM State {root}' in line:
+                y += [float(line.split()[3])]
     elif prog == 'xtb':
         print('XTB transitions not implemnted')
         exit()
