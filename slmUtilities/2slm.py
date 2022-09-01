@@ -3,6 +3,7 @@ import argparse
 import os
 import requests
 import subprocess
+from datetime import datetime
 from time import sleep
 from pathlib import Path
 
@@ -197,7 +198,7 @@ def copyScratch():
     global filePath
     global fileName
     scratchStr += '# copying files from the scratch directory\n'
-    # scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
+    scratchStr += f'mv "{filePath}/{fileName}" "{filePath}/{fileName}.bak.{datetime.now().strftime("%d-%m-%Y-%H:%M:%S")}"\n'
     scratchStr += f'cp -r "{scratchDir}" "{filePath}/{fileName}" && '
     scratchStr += f'rm -rf "{scratchDir}"\n'
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}/"\n\n'
