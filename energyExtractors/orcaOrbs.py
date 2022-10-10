@@ -3,12 +3,62 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import hsv_to_rgb
 import numpy as np
 import sys
+import argparse
 
-try:
-    infile = sys.argv[1]
-except:
-    print('ORCA outpput file not provided.\nExiting...')
-    exit()
+def read_args():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Reads orbitals from ORCA and plots them with support for multiconfiguration"
+        )
+    )
+    parser.add_argument(
+        "-d",
+        "--degeneracy",
+        help='Tolerance to group degeneratre orbitals',
+        default=0.05,
+        type=float,
+        required=False,
+    )
+    parser.add_argument(
+        "-s",
+        "--size",
+        help='Annotation size',
+        default=6,
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
+        "-o",
+        "--offset",
+        help='Annotation offset',
+        default=0.5,
+        type=float,
+        required=False,
+    )
+    parser.add_argument(
+        "-f",
+        "--fig",
+        help='Figure dimensions as \"H W\"',
+        default=[10, 5],
+        nargs=2,
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
+        "-y",
+        "--ylim",
+        help='Limits of the Y axis as \"min max\"',
+        default=[-20, 10],
+        nargs=2,
+        type=int,
+        required=False,
+    )
+
+    parser.add_argument(
+        'files', 
+        nargs=argparse.REMAINDER
+    )
+    return parser.parse_args()
 
 
 def readORCAOrbs(infile):
@@ -77,7 +127,13 @@ def makeDegeneracyList(orbitals, degeneracyTol):
         offsetBins = np.append(offsetBins, newbin)
     return offsetBins
 
-def plot(degeneracyTol=0.05, ymax=10, ymin=-20, annotateSize=6, annotateOffset=0.5, figH=10, figW=5):
+def plot(infile, args):
+    degeneracyTol = args.degeneracy
+    figH, figW = args.fig
+    ymin, ymax = args.ylim
+    annotateSize = args.size
+    annotateOffset = args.offset
+
     fig, ax = plt.subplots(1,1, figsize=(figW,figH))
 
     try:
@@ -102,4 +158,6 @@ def plot(degeneracyTol=0.05, ymax=10, ymin=-20, annotateSize=6, annotateOffset=0
     ax.set_xticks([], [])
     plt.show()
 
-plot()
+args = read_args()
+for file in args.files:
+    plot(file, args)
