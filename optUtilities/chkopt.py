@@ -279,7 +279,7 @@ if args.progress == True:
         for infile in args.files:
             prog, lines, root = identifyProg(infile, args)
             extractProgress(prog, lines)
-            exit()
+        exit()
 
 global fig
 fig = plt.figure(figsize=(12,5))
