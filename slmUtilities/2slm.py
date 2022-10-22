@@ -332,6 +332,24 @@ def runQChem(procs, user):
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}"\n\n'
     return
 
+def runNWChem(procs):
+    global fullFilePath
+    global scratchStr
+    global fileName
+    global scratchDir
+    scratchStr += '\n# Set up environment\n' 
+    scratchStr += 'module load intel-mpi/2019.10.317-linux-centos7-skylake_avx512-gcc11.2.0\n'
+    scratchStr += 'module load intel-oneapi-compilers/2022.0.2-linux-centos7-haswell-gcc11.2.0\n'
+    scratchStr += 'module load intel-oneapi-mkl/2022.0.2-linux-centos7-skylake_avx512-gcc11.2.0\n'
+    scratchStr += 'BINDIR=/mnt/lustre/projects/p2015120004/apps/nwchem/nwchem-7.0.2-ifort/bin/LINUX64\n'
+    scratchStr += f'export OMP_NUM_THREADS={procs}\n\n'
+    setupScratch()
+    scratchStr += '# Run NWChem\n' 
+    scratchStr += f'cd {scratchDir}\n' 
+    scratchStr += f'mpirun -n {procs+1} $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"\n\n'
+    copyScratch()
+    return
+
 def extractParams(file, program, args):
     with open(file, 'r') as f:
         lines = f.readlines()
@@ -357,27 +375,32 @@ def extractParams(file, program, args):
         if program == 'qchem':
             if 'mem_total' in line.lower():
                 mem = int(round(int(line.split()[1])/1024, 0))
+        if program == 'nwchem':
+            if 'memory' in line.lower() and 'total' in line.lower():
+                mem = int(line.split()[2])
         if program == 'mopac':
             if 'threads' in line.lower():
                 for i in line.split():
                     if 'threads' in i:
                         procs = int(i.split('=')[1])
 
+    procs = args.cpus[0] if args.cpus != [0] else procs
+
+    if procs == 0:
+        procs = 1 if program not in ['qchem', 'nwchem'] else 16
+        print(f'Number of cores not identified, using {procs} default')
+        
+
     if program == 'orca':
         mem = int((mem*procs)/1024)
+    elif program == 'nwchem':
+        mem = int((mem*procs))
     
     mem = args.memory[0] if args.memory[0] != 0 else mem
     if mem == 0:
         print('Memory not identified, using 32GB default')
         mem = 32
 
-    procs = args.cpus[0] if args.cpus != [0] else procs
-
-    if procs == 0:
-        procs = 1 if program != 'qchem' else 16
-        print(f'Number of cores not identified, using {procs} default')
-        
-    
     tpn = args.ntpn[0] if args.ntpn[0] != 0 else procs
 
     return procs, mem, tpn
@@ -418,7 +441,7 @@ def main():
     global project
     global homePath
 
-    fileEXTs = {'mop': 'mopac', 'inp': 'orca', 'gjf': 'gaussian', 'com': 'gaussian', '.in': 'psi4'}
+    fileEXTs = {'mop': 'mopac', 'inp': 'orca', 'gjf': 'gaussian', 'com': 'gaussian', '.in': 'psi4', '.nw': 'nwchem'}
     hostname = os.uname().nodename
 
     if hostname.startswith('monarch'):
@@ -468,7 +491,7 @@ def main():
             continue
 
         #if .inp, then check if qchem
-        if program == 'orca' or program == 'psi4':
+        if program in ['orca', 'psi4']:
             with open(fullFilePath, 'r') as f:
                 lines = f.readlines()
             for line in lines:
@@ -492,7 +515,7 @@ def main():
         scratchStr += f'#SBATCH --mem={mem}GB\n'
         scratchStr += f'#SBATCH --qos={qos}\n' if len(qos) > 0 else ''
         scratchStr += f'#SBATCH --partition={part}\n' if len(part) > 0 else ''
-        scratchStr += f'#SBATCH --nodelist=hi01\n' if program == 'qchem' else ''
+        # scratchStr += f'#SBATCH --nodelist=hi01\n' if program == 'qchem' else ''
         if args.email == True: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
         if hostname == 'm3': scratchStr += f'#SBATCH --account={account}\n' 
         scratchStr += f'\nexport PROJECT="{account}"\n\n'
@@ -505,6 +528,7 @@ def main():
         if program == 'orca': runOrca(args)
         if program == 'psi4': runPsi4(args)
         if program == 'qchem': runQChem(procs, user)
+        if program == 'nwchem': runNWChem(procs)
 
         if notify == True: notifyCall('finished')
 
