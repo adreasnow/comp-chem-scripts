@@ -338,15 +338,12 @@ def runNWChem(procs):
     global fileName
     global scratchDir
     scratchStr += '\n# Set up environment\n' 
-    scratchStr += 'module load intel-mpi/2019.10.317-linux-centos7-skylake_avx512-gcc11.2.0\n'
-    scratchStr += 'module load intel-oneapi-compilers/2022.0.2-linux-centos7-haswell-gcc11.2.0\n'
-    scratchStr += 'module load intel-oneapi-mkl/2022.0.2-linux-centos7-skylake_avx512-gcc11.2.0\n'
-    scratchStr += 'BINDIR=/mnt/lustre/projects/p2015120004/apps/nwchem/nwchem-7.0.2-ifort/bin/LINUX64\n'
+    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_latest.slm\n'
     scratchStr += f'export OMP_NUM_THREADS={procs}\n\n'
     setupScratch()
     scratchStr += '# Run NWChem\n' 
     scratchStr += f'cd {scratchDir}\n' 
-    scratchStr += f'mpirun -n {procs+1} $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"\n\n'
+    scratchStr += f'/usr/bin/time -v mpirun -n {procs+1} --oversubscribe $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"\n\n'
     copyScratch()
     return
 
