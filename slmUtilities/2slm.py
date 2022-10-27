@@ -338,8 +338,7 @@ def runNWChem(procs):
     global fileName
     global scratchDir
     scratchStr += '\n# Set up environment\n' 
-    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_latest.slm\n'
-    scratchStr += f'export OMP_NUM_THREADS={procs}\n\n'
+    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_latest.sh\n'
     setupScratch()
     scratchStr += '# Run NWChem\n' 
     scratchStr += f'cd {scratchDir}\n' 

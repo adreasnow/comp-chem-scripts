@@ -95,10 +95,15 @@ def identifyProg(file, args):
         elif " x T B" in line:
             if printed == False: print('XTB')
             prog = 'xtb'
+        elif 'Northwest Computational Chemistry Package' in line:
+            if printed == False:print('NWChem')
+            prog = 'nwchem'
         # Root detection
         elif prog == 'psi4' and 'follow_root' in line.lower() and root == 0:
             root = line.split()[1]
         elif prog == 'qchem' and 'cis_state_deriv' in line.lower() and root == 0:
+            root = line.split()[1]
+        elif prog == 'prog' and 'root' in line.lower() and root == 0:
             root = line.split()[1]
         
     return prog, lines, root
@@ -126,6 +131,15 @@ def extractTransition(prog, lines, root):
     elif prog == 'xtb':
         print('XTB transitions not implemnted')
         exit()
+    elif prog == 'nwchem':
+        mwchemTransition = False
+        for line in lines:
+            if f'Root   {root} singlet ' in line:
+                if mwchemTransition == True:
+                    y += [float(line.split()[6])]
+                    mwchemTransition = False
+                else:
+                    mwchemTransition = True
 
     x = []
     for i in range(len(y)): x += [i]
@@ -170,6 +184,11 @@ def extractProgress(prog, lines):
             if '~' in line:
                 print(line)
 
+    elif prog == 'nwchem':
+        for line in lines:
+            if '@' in line:
+                print(line)
+
     elif prog == 'xtb':
         for count, line in enumerate(lines):
             lineCount = 4
@@ -203,6 +222,15 @@ def extractEnergy(prog, lines, args, root):
         for line in lines:
             if 'Total Energy = ' in line:
                 y += [float(line.split()[3])]
+
+    elif prog == 'nwchem':
+        for line in lines:
+            if '@' in line:
+                try:
+                    newY = float(line.split()[2])
+                    y += [newY]
+                except:
+                    pass
 
     elif prog == 'xtb':
         for line in lines:
