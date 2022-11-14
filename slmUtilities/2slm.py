@@ -206,16 +206,17 @@ def copyScratch():
 
 def notifySubmit():
     global fileName
-    json = {'value1': fileName, 'value2': 'submitted', 'value3': ''}
+    global hostName
+    json = {'value1': fileName, 'value2': 'submitted', 'value3': hostName}
     r = requests.post(f'https://maker.ifttt.com/trigger/{os.environ["JOBID"]}/with/key/{os.environ["JOBKEY"]}', json=json, headers={"Content-Type": "application/json"})
     return
 
 def notifyCall(state, log=''):
     global scratchStr
     global fileName
+    global hostName
     scratchStr += f'# notifying of {state} job\n'
-    scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "' + fileName + '" , "value2": "' + state + '", "value3": ""}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
-
+    scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "' + fileName + '" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     return
 
 def runGaussian():
@@ -436,12 +437,15 @@ def main():
     global copy
     global project
     global homePath
+    global host
+    global hostName
 
     fileEXTs = {'mop': 'mopac', 'inp': 'orca', 'gjf': 'gaussian', 'com': 'gaussian', '.in': 'psi4', '.nw': 'nwchem'}
     hostname = os.uname().nodename
 
     if hostname.startswith('monarch'):
         host = 'monarch'
+        hostName = 'MonARCH'
         user = os.getlogin()
         scratch = f'/home/{user}/scratch'
         account = 'p2015120004'
@@ -449,11 +453,22 @@ def main():
         homePath = f'{project}/{user}'
     elif hostname.startswith('m3'):
         host = 'm3'
+        hostName = 'M3'
         user = os.getlogin()
         account = 'sn29'
-        scratch = f'/home/{user}/{account}_scratch/{user}'
-        project = f'/projects/{account}'
+        scratch = f'/scratch/{account}/{user}'
+        project = f'/g/data/{account}/{user}'
         homePath = f'{project}/{user}'
+    elif hostname.startswith('gadi-'):
+        host = 'gadi'
+        hostName = 'Gadi'
+        user = os.getlogin()
+        account = 'k96'
+        scratch = f'/home/{user}/{account}_scratch/{user}'
+        project = f'/g/data/{account}'
+        homePath = f'{project}/{user}'
+        print('Gadi not implemented!\nExiting...')
+        exit()
     else:
         print('Cluster not recognised.\nExiting...')
         exit()
