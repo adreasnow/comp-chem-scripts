@@ -150,13 +150,17 @@ def plot(infile, args):
         ax.annotate(val, (degen[i]+annotateOffset, orbitals[i]), fontsize=annotateSize)
     for i, val in enumerate(occupation):
         if val < 1.999 and val > 0.001:
-            ax.annotate(val, (degen[i]-annotateOffset*2, orbitals[i]), fontsize=annotateSize)
+            if val >= 1.95 or val <=0.05:
+                ax.annotate(val, (degen[i]-annotateOffset*2, orbitals[i]), fontsize=annotateSize, weight='bold', bbox=dict(boxstyle="square,pad=0.3", fc="white", ec="magenta", lw=2))
+            else:
+                ax.annotate(val, (degen[i]-annotateOffset*2, orbitals[i]), fontsize=annotateSize, weight='bold', bbox=dict(boxstyle="square,pad=0.3", fc="white", ec="green", lw=2))
 
     ax.set_ylim((ymin, ymax))
     ax.set_xlim((min(degen-0.5), max(degen+0.5)))
     ax.set_ylabel(r'Energy ($eV$)')
     ax.set_xticks([], [])
     plt.show()
+
 
 args = read_args()
 for file in args.files:
