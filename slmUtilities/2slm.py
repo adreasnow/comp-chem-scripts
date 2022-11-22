@@ -8,7 +8,7 @@ from time import sleep
 from pathlib import Path
 
 
-def read_args():
+def read_args() -> argparse.ArgumentParser.parse_args:
     parser = argparse.ArgumentParser(
         description=(
             "Slurm script importer for MonARCH/M3"
@@ -177,7 +177,7 @@ def read_args():
     return parser.parse_args()
 
 
-def setupScratch():
+def setupScratch() -> None:
     global copy
     global scratchStr
     global scratchDir
@@ -192,7 +192,7 @@ def setupScratch():
     scratchStr += '\n\n'
     return
 
-def copyScratch():
+def copyScratch() -> None:
     global scratchStr
     global scratchDir
     global filePath
@@ -204,14 +204,14 @@ def copyScratch():
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}/"\n\n'
     return
 
-def notifySubmit():
+def notifySubmit() -> None:
     global fileName
     global hostName
     json = {'value1': fileName, 'value2': 'submitted', 'value3': hostName}
     r = requests.post(f'https://maker.ifttt.com/trigger/{os.environ["JOBID"]}/with/key/{os.environ["JOBKEY"]}', json=json, headers={"Content-Type": "application/json"})
     return
 
-def notifyCall(state, log=''):
+def notifyCall(state:str, log:str='') -> None:
     global scratchStr
     global fileName
     global hostName
@@ -219,7 +219,7 @@ def notifyCall(state, log=''):
     scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "' + fileName + '" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     return
 
-def runGaussian():
+def runGaussian() -> None:
     global fileName
     global fullFilePath
     global filePath
@@ -228,7 +228,7 @@ def runGaussian():
     scratchStr += f'module load gaussian/g16a03\n\n'
     scratchStr += f'cat "{fullFilePath}" | G16 > "{filePath}/{fileName}.out" 2>&1\n\n'
 
-def runMopac(args):
+def runMopac(args:argparse.ArgumentParser.parse_args) -> None:
     global fullFilePath
     global scratchStr
     global scratchDir
@@ -242,9 +242,10 @@ def runMopac(args):
     scratchStr += f'/usr/bin/time -v mopac "{fileName}" \n\n'
     if args.touch == True: scratchStr += f'rm "{filePath}/{fileName}.out"\n'
     copyScratch()
+    return
 
 
-def runOrca(args):
+def runOrca(args:argparse.ArgumentParser.parse_args) -> None:
     global scratchStr
     global project
     global filePath
@@ -278,7 +279,7 @@ def runOrca(args):
         copyScratch()
     return
 
-def runPsi4(args):
+def runPsi4(args:argparse.ArgumentParser.parse_args) -> None:
     global scratchStr
     global project
     global filePath
@@ -316,7 +317,7 @@ def runPsi4(args):
 
     return
 
-def runQChem(procs, user):
+def runQChem(procs:int, user:str) -> None:
     global fullFilePath
     global scratchStr
     global fileName
@@ -333,7 +334,7 @@ def runQChem(procs, user):
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}"\n\n'
     return
 
-def runNWChem(procs):
+def runNWChem(procs:int) -> None:
     global fullFilePath
     global scratchStr
     global fileName
@@ -347,7 +348,7 @@ def runNWChem(procs):
     copyScratch()
     return
 
-def extractParams(file, program, args):
+def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args) -> None:
     with open(file, 'r') as f:
         lines = f.readlines()
     mem = 0
@@ -402,7 +403,7 @@ def extractParams(file, program, args):
 
     return procs, mem, tpn
 
-def setupTime(args, host):
+def setupTime(args:argparse.ArgumentParser.parse_args, host:str) -> tuple[str, str, str]:
     global timestring
     global qos
 
@@ -428,7 +429,7 @@ def setupTime(args, host):
     return timestring, part, qos
 
 
-def main():
+def main() -> None:
     global scratchStr
     global scratchDir
     global fullFilePath
