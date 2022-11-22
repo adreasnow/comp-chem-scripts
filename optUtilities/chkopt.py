@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import argparse
 from time import sleep
 
-def read_args() -> argparse.ArgumentParser.parse_args:
+def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Chek optimisation progress for Q-Chem, Gaussian, Psi4 and ORCA files. Allows for plotting tddft transiiton energy, system energy, or printing the optimisation progress"
@@ -72,7 +72,7 @@ def nmToEv(nm:float) -> float:
     eV = (h*c)/(nm*1e-9)
     return eV
 
-def identifyProg(infile:str, args:argparse.ArgumentParser.parse_args) -> tuple[str, list[str], int]:
+def identifyProg(infile:str, args:argparse.Namespace) -> tuple[str, list[str], int]:
     global printed
     prog = ''
     root = args.root[0]
@@ -258,8 +258,7 @@ def extractEnergy(prog:str, lines:list[str], root:int) -> tuple[list[float], lis
     for i in range(len(y)): x += [i]
     return x,  y
 
-def plotFunc(infile:str, args:argparse.ArgumentParser.parse_args) -> None:
-    global fig
+def plotFunc(infile:str, args:argparse.Namespace, fig:plt.figure, ax: plt.Axes) -> None:
     global printed
     global labelname
 
@@ -268,11 +267,11 @@ def plotFunc(infile:str, args:argparse.ArgumentParser.parse_args) -> None:
     prog, lines, root = identifyProg(infile, args)
 
     if args.transition == True: x, y = extractTransition(prog, lines, root)
-    else:                       x, y = extractEnergy(prog, lines, args, root)
+    else:                       x, y = extractEnergy(prog, lines, root)
 
 
     
-    ax = fig.add_subplot(111)
+    
     ax.set_xlabel("OPT Iteration")
     if args.transition == True: ax.set_ylabel("Excitation Energy (eV)")
     else:                       ax.set_ylabel("Energy (Eh)")
@@ -299,7 +298,7 @@ def plotFunc(infile:str, args:argparse.ArgumentParser.parse_args) -> None:
     plt.draw()
     return
 
-def main() -> NoReturn:
+def main():
     args = read_args()
 
     global labelname
@@ -323,20 +322,20 @@ def main() -> NoReturn:
                 extractProgress(prog, lines)
             exit()
 
-    global fig
     fig = plt.figure(figsize=(12,5))
+    ax = fig.add_subplot(111)
 
     if args.watch == True: 
         while True:
             for infile in args.files:
-                plotFunc(infile, args)
+                plotFunc(infile, args, fig, ax)
             printed = True
-            for i in args.interval[0]:
+            for i in range(args.interval[0]):
                 plt.pause(1)
             plt.clf()  
     else:
             for infile in args.files:
-                plotFunc(infile, args)
+                plotFunc(infile, args, fig, ax)
             plt.show()
 
 if __name__ == "__main__":
