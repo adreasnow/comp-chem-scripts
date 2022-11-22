@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import argparse
 from time import sleep
 
-def read_args():
+def read_args() -> argparse.ArgumentParser.parse_args:
     parser = argparse.ArgumentParser(
         description=(
             "Chek optimisation progress for Q-Chem, Gaussian, Psi4 and ORCA files. Allows for plotting tddft transiiton energy, system energy, or printing the optimisation progress"
@@ -66,13 +66,13 @@ def read_args():
     )
     return parser.parse_args()
 
-def nmToEv(nm):
+def nmToEv(nm:float) -> float:
     h = 4.135667e-15
     c = 2.99792e8
     eV = (h*c)/(nm*1e-9)
     return eV
 
-def identifyProg(file, args):
+def identifyProg(infile:str, args:argparse.ArgumentParser.parse_args) -> tuple[str, list[str], int]:
     global printed
     prog = ''
     root = args.root[0]
@@ -98,6 +98,11 @@ def identifyProg(file, args):
         elif 'Northwest Computational Chemistry Package' in line:
             if printed == False:print('NWChem')
             prog = 'nwchem'
+        elif 'pyscf.' in line:
+            if printed == False:print('PySCF')
+            prog = 'pyscf'
+            printed = True
+
         # Root detection
         elif prog == 'psi4' and 'follow_root' in line.lower() and root == 0:
             root = line.split()[1]
@@ -108,7 +113,7 @@ def identifyProg(file, args):
         
     return prog, lines, root
 
-def extractTransition(prog, lines, root):
+def extractTransition(prog:str, lines:list[str], root:int) -> tuple[list[float], list[float]]:
     if root == 0: root = 1
     y = []
     
@@ -140,12 +145,15 @@ def extractTransition(prog, lines, root):
                     mwchemTransition = False
                 else:
                     mwchemTransition = True
+    elif prog == 'pyscf':
+        print('PySCF transitions not implemnted')
+        exit()
 
     x = []
     for i in range(len(y)): x += [i]
     return x,  y
 
-def extractProgress(prog, lines):
+def extractProgress(prog:str, lines:list[str]) -> None:
     outString = []
     if prog == 'orca':
         for count, line in enumerate(lines):
@@ -198,9 +206,14 @@ def extractProgress(prog, lines):
                 outString += ['--']
         for i in outString[-((lineCount*2)+3):]:
             print(i.strip('\n'))
+
+    elif prog == 'pyscf':
+        for count, line in enumerate(lines):
+            if 'Displace =' in line:
+                print(line)
     return
 
-def extractEnergy(prog, lines, args, root):
+def extractEnergy(prog:str, lines:list[str], root:int) -> tuple[list[float], list[float]]:
     y = []
     if prog == 'orca':
         for line in lines:
@@ -236,11 +249,16 @@ def extractEnergy(prog, lines, args, root):
         for line in lines:
             if 'total energy  :' in line:
                 y += [float(line.split()[4])]
+
+    elif prog == 'pyscf':
+        for line in lines:
+            if 'norm(grad) =' in line:
+                y += [float(line.split()[4])]
     x = []
     for i in range(len(y)): x += [i]
     return x,  y
 
-def plotFunc(infile, args):
+def plotFunc(infile:str, args:argparse.ArgumentParser.parse_args) -> None:
     global fig
     global printed
     global labelname
@@ -273,53 +291,54 @@ def plotFunc(infile, args):
             print(f'Problem with {label}:')
             print(e)
 
-
-
-
-    
     labelname += [label]
 
     if root != 0 and printed == False: print(f'Root = {root}')
 
-    
     ax.legend(labelname)
     plt.draw()
     return
 
-args = read_args()
+def main() -> None:
+    args = read_args()
 
-global labelname
-global printed
-labelname = []
-printed = False
+    global labelname
+    global printed
+    labelname = []
+    printed = False
 
-if args.progress == True:
-    if args.watch == True:
-        while True:
+    if args.progress == True:
+        if args.watch == True:
+            while True:
+                for infile in args.files:
+                    label = str(str(infile.split("/")[-1].split(".")[0]))
+                    if printed == False: print(label)
+                    prog, lines, root = identifyProg(infile, args)
+                    extractProgress(prog, lines)
+                printed = True
+                sleep(args.interval[0])
+        else:
             for infile in args.files:
-                label = str(str(infile.split("/")[-1].split(".")[0]))
-                if printed == False: print(label)
                 prog, lines, root = identifyProg(infile, args)
                 extractProgress(prog, lines)
+            exit()
+
+    global fig
+    fig = plt.figure(figsize=(12,5))
+
+    if args.watch == True: 
+        while True:
+            for infile in args.files:
+                plotFunc(infile, args)
             printed = True
-            sleep(args.interval[0])
+            for i in args.interval[0]:
+                plt.pause(1)
+            plt.clf()  
     else:
-        for infile in args.files:
-            prog, lines, root = identifyProg(infile, args)
-            extractProgress(prog, lines)
-        exit()
+            for infile in args.files:
+                plotFunc(infile, args)
+            plt.show()
+    return
 
-global fig
-fig = plt.figure(figsize=(12,5))
-
-if args.watch == True: 
-    while True:
-        for infile in args.files:
-            plotFunc(infile, args)
-        printed = True
-        plt.pause(args.interval[0])
-        plt.clf()  
-else:
-        for infile in args.files:
-            plotFunc(infile, args)
-        plt.show()
+if __name__ == "__main__":
+    main()
