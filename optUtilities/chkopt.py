@@ -299,7 +299,7 @@ def plotFunc(infile:str, args:argparse.ArgumentParser.parse_args) -> None:
     plt.draw()
     return
 
-def main() -> None:
+def main() -> NoReturn:
     args = read_args()
 
     global labelname
@@ -338,7 +338,6 @@ def main() -> None:
             for infile in args.files:
                 plotFunc(infile, args)
             plt.show()
-    return
 
 if __name__ == "__main__":
     main()

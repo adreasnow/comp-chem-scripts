@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
-def read_args():
+def read_args() -> argparse.ArgumentParser.parse_args:
     parser = argparse.ArgumentParser(
         description=(
             "Script for plotting ORCA .spectrum files"
@@ -73,7 +73,7 @@ def read_args():
 
     return parser.parse_args()
 
-def readSpectrum(infile, energyUnits, norm):
+def readSpectrum(infile:str, energyUnits:str, norm:bool) -> dict[float]:
     energy = []
     total = []
     fc = []
@@ -102,7 +102,7 @@ def readSpectrum(infile, energyUnits, norm):
     return returnDict
         
 
-def plot(dicts, eList, energyUnits, xrange, figW=12, figH=5):
+def plot(dicts:dict, eList:list[float], energyUnits:str, xrange:list[int], figW:int=12, figH:int=5) -> plt.show:
     plotList = []
     for inDictList in dicts:
         eToPlot = []
@@ -127,7 +127,7 @@ def plot(dicts, eList, energyUnits, xrange, figW=12, figH=5):
     return plt.show()
 
 
-def main():
+def main() -> NoReturn:
     args = read_args()
     dicts = []
     if args.absorbance == None and args.emission == None:
@@ -155,8 +155,6 @@ def main():
         dicts += [['Emission', fluorDict]]
     
     plot(dicts, [plotTotal, args.ht, args.fc], args.energy[0], xrange)
-
-
 
 if __name__ == "__main__":
     main()
