@@ -1,6 +1,6 @@
 #! python3
 import argparse
-def read_args() -> argparse.ArgumentParser.parse_args:
+def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Tool to extract xyz files from nwchem outputs"
@@ -22,7 +22,7 @@ def read_args() -> argparse.ArgumentParser.parse_args:
     return parser.parse_args()
 
 
-def main() -> NoReturn:
+def main():
     args = read_args()
 
     for file in args.files:

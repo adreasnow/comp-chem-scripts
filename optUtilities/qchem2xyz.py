@@ -1,6 +1,6 @@
 #! python3
 import argparse
-def read_args() -> argparse.ArgumentParser.parse_args:
+def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Slurm script importer for MonARCH/M3"
@@ -30,7 +30,7 @@ def read_args() -> argparse.ArgumentParser.parse_args:
     )
     return parser.parse_args()
 
-def main() -> NoReturn:
+def main():
     args = read_args()
 
     for file in args.files:

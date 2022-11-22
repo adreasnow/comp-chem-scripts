@@ -127,7 +127,7 @@ def plot(dicts:dict, eList:list[float], energyUnits:str, xrange:list[int], figW:
     return plt.show()
 
 
-def main() -> NoReturn:
+def main():
     args = read_args()
     dicts = []
     if args.absorbance == None and args.emission == None:

@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import argparse
 
-def read_args():
+def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Reads orbitals from ORCA and plots them with support for multiconfiguration"
@@ -61,7 +61,7 @@ def read_args():
     return parser.parse_args()
 
 
-def readORCAOrbs(infile):
+def readORCAOrbs(infile:str) -> tuple[list[float], list[int], list[float], list[float]]:
     with open(infile, "r") as f:
         lines = f.readlines()
     mark = []
@@ -89,7 +89,7 @@ def readORCAOrbs(infile):
     return(orbitals, labels, occupationColOut, occupation)
 
 
-def makeDegeneracyList(orbitals, degeneracyTol):
+def makeDegeneracyList(orbitals:list[float], degeneracyTol:float) -> list[int]:
     currentBin = []
     bins = []
     binNum = 0
@@ -127,7 +127,7 @@ def makeDegeneracyList(orbitals, degeneracyTol):
         offsetBins = np.append(offsetBins, newbin)
     return offsetBins
 
-def plot(infile, args):
+def plot(infile:str, args:argparse.Namespace):
     degeneracyTol = args.degeneracy
     figH, figW = args.fig
     ymin, ymax = args.ylim
@@ -161,7 +161,10 @@ def plot(infile, args):
     ax.set_xticks([], [])
     plt.show()
 
+def main():
+    args = read_args()
+    for file in args.files:
+        plot(file, args)
 
-args = read_args()
-for file in args.files:
-    plot(file, args)
+if __name__ == "__main__":
+    main()
