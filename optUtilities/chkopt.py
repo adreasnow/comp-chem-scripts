@@ -209,7 +209,7 @@ def extractProgress(prog:str, lines:list[str]) -> None:
 
     elif prog == 'pyscf':
         for count, line in enumerate(lines):
-            if 'Displace =' in line:
+            if 'norm(grad) =' in line:
                 print(line)
     return
 
