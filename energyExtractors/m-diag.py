@@ -18,14 +18,6 @@ def read_args() -> argparse.Namespace:
         )
     )
     parser.add_argument(
-        "-d",
-        "--degeneracy",
-        help='Tolerance to group degeneratre orbitals',
-        default=0.05,
-        type=float,
-        required=False,
-    )
-    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
