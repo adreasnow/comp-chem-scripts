@@ -11,7 +11,6 @@ class prog(Enum):
     pyscf = auto()
     psi4 = auto()
 
-
 def read_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -73,7 +72,6 @@ def extract_occ(lines:list[str], program:prog) -> list[float]:
                         occs += [float(orbs.split()[1])]
                     except IndexError:
                         break
-    
     return occs
 
 def build_ref(electrons:int, occ:list[float]) -> list[float]:
@@ -111,8 +109,6 @@ def main() -> None:
         ref = build_ref(electrons, occ)
         m = m_diag(ref, occ)
         print(m)
-        
-        
 
 if __name__ == "__main__":
     main()
