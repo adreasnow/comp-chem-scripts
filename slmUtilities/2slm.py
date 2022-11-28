@@ -216,7 +216,7 @@ def notifyCall(state:str, log:str='') -> None:
     global fileName
     global hostName
     scratchStr += f'# notifying of {state} job\n'
-    scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "' + fileName + '" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     return
 
 def runGaussian() -> None:
