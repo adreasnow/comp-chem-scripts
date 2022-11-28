@@ -323,20 +323,20 @@ def main():
             exit()
 
     fig = plt.figure(figsize=(12,5))
-    ax = fig.add_subplot(111)
 
     if args.watch == True: 
         while True:
+            ax = fig.add_subplot(111)
             for infile in args.files:
                 plotFunc(infile, args, fig, ax)
             printed = True
-            for i in range(args.interval[0]):
-                plt.pause(1)
+            plt.pause(args.interval[0])
             plt.clf()  
     else:
-            for infile in args.files:
-                plotFunc(infile, args, fig, ax)
-            plt.show()
+        ax = fig.add_subplot(111)
+        for infile in args.files:
+            plotFunc(infile, args, fig, ax)
+        plt.show()
 
 if __name__ == "__main__":
     main()
