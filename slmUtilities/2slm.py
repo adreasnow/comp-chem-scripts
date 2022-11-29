@@ -217,6 +217,7 @@ def notifyCall(state:str, log:str='') -> None:
     global hostName
     scratchStr += f'# notifying of {state} job\n'
     scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    if state == 'finished': scratchStr += 'sleep 5'
     return
 
 def runGaussian() -> None:
@@ -549,7 +550,7 @@ def main() -> None:
 
         sleep(0.2)
 
-        depcommand = f'-d afterany:{args.dependency}' if args.dependency > 0 else ''
+        depcommand = f'-d afterok:{args.dependency}' if args.dependency > 0 else ''
         if args.submit == True:
             command = f'cd "{filePath}"; sbatch {depcommand} "{filePath}/{fileName}.slm"'
             proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, executable='/bin/bash')
