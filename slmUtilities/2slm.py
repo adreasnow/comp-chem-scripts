@@ -323,8 +323,8 @@ def runQChem(procs:int, user:str) -> None:
     global scratchStr
     global fileName
     scratchStr += '\n# Set up environment\n' 
-    scratchStr += f'export QCSCRATCH=/home/{user}/scratch\n'
-    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/qchem/qcenv.sh\n\n'
+    scratchStr += 'module load qchem/6.0.2\n\n'
+    scratchStr += f'export QCSCRATCH=/mnt/lustre/scratch/{user}/qchem\n'
     scratchStr += '# Setting up the scratch directory\n' 
     scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
     scratchStr += f'cp "{fullFilePath}" "{filePath}/{fileName}"\n'
@@ -514,9 +514,7 @@ def main() -> None:
         filePath = '/'.join(fullFilePath.split('/')[0:-1])
         fileName = infile.split('/')[-1].split('.')[0]
     
-
         scratchDir = f'{scratch}/{fileName}'
-
 
         procs, mem, tpn = extractParams(fullFilePath, program, args)
         timestring, part, qos = setupTime(args, host)
@@ -528,7 +526,6 @@ def main() -> None:
         scratchStr += f'#SBATCH --mem={mem}GB\n'
         scratchStr += f'#SBATCH --qos={qos}\n' if len(qos) > 0 else ''
         scratchStr += f'#SBATCH --partition={part}\n' if len(part) > 0 else ''
-        # scratchStr += f'#SBATCH --nodelist=hi01\n' if program == 'qchem' else ''
         if args.email == True: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
         if hostname == 'm3': scratchStr += f'#SBATCH --account={account}\n' 
         scratchStr += f'\nexport PROJECT="{account}"\n\n'
