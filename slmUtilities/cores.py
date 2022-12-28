@@ -9,7 +9,7 @@ def runbash(command:str) -> list[str]:
     return out.stdout.decode().split('\n')[1:-1]
 
 
-def main() -> NoReturn:
+def main() -> None:
     queueOut = runbash("/opt/slurm-20.11.9/bin/squeue -o'%.8T %.4C %q' -u asnow --sort=C")
     runningQueues = {'partner': 0, 'normal': 0}
     pendingQueues = {'partner': {}, 'normal': {}}
