@@ -217,16 +217,20 @@ def notifyCall(state:str, log:str='') -> None:
     global hostName
     scratchStr += f'# notifying of {state} job\n'
     scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
-    if state == 'finished': scratchStr += 'sleep 5'
     return
 
-def runGaussian() -> None:
+def runGaussian(args:argparse.ArgumentParser.parse_args) -> None:
     global fileName
     global fullFilePath
     global filePath
     global scratchStr
     scratchStr += f'# Running Gaussian job\n'
-    scratchStr += f'module load gaussian/g16a03\n\n'
+    scratchStr += f'module load gaussian/g16a03'
+    if args.notify:
+        state = 'failed'
+        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    else:
+        scratchStr += '\n\n'
     scratchStr += f'cat "{fullFilePath}" | G16 > "{filePath}/{fileName}.out" 2>&1\n\n'
 
 def runMopac(args:argparse.ArgumentParser.parse_args) -> None:
@@ -234,13 +238,19 @@ def runMopac(args:argparse.ArgumentParser.parse_args) -> None:
     global scratchStr
     global scratchDir
     global fileName
+    global hostName
     scratchStr += f'# Running MOPAC job\n'
     scratchStr += f'source /monfs00/projects/p2015120004/apps/mopac/activate_mopac.sh\n\n'
     setupScratch()
     if args.touch == True:
         scratchStr += f'touch "{scratchDir}/{fileName}.out"\n'
         scratchStr += f'ln -s "{scratchDir}/{fileName}.out" "{filePath}/{fileName}.out"\n'
-    scratchStr += f'/usr/bin/time -v mopac "{fileName}" \n\n'
+    scratchStr += f'/usr/bin/time -v mopac "{fileName}"'
+    if args.notify:
+        state = 'failed'
+        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    else:
+        scratchStr += '\n\n'
     if args.touch == True: scratchStr += f'rm "{filePath}/{fileName}.out"\n'
     copyScratch()
     return
@@ -251,6 +261,7 @@ def runOrca(args:argparse.ArgumentParser.parse_args) -> None:
     global project
     global filePath
     global fileName
+    global hostName
 
     if float(args.version) in [4.0, 5.0]:
         orcaVersion = int(args.version)
@@ -273,10 +284,22 @@ def runOrca(args:argparse.ArgumentParser.parse_args) -> None:
         scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
         scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
         scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1'
+        if args.notify:
+            state = 'failed'
+            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        else:
+            scratchStr += '\n\n'
+        if args.notify: notifyCall('finished')
     else:
         setupScratch()
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1'
+        if args.notify:
+            state = 'failed'
+            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        else:
+            scratchStr += '\n\n'
+        if args.notify: notifyCall('finished')
         copyScratch()
     return
 
@@ -309,16 +332,26 @@ def runPsi4(args:argparse.ArgumentParser.parse_args) -> None:
         scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
         scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
         scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{fileName}.out" 2>&1'
+        if args.notify:
+            state = 'failed'
+            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        else:
+            scratchStr += '\n\n'
     else:
         scratchStr += f'export PSI_SCRATCH="{scratchDir}"\n\n'
         setupScratch()
-        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{filePath}/{fileName}.out" 2>&1\n\n'
+        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{filePath}/{fileName}.out" 2>&1'
+        if args.notify:
+            state = 'failed'
+            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        else:
+            scratchStr += '\n\n'
         copyScratch()
 
     return
 
-def runQChem(procs:int, user:str) -> None:
+def runQChem(args:argparse.ArgumentParser.parse_args, procs:int, user:str) -> None:
     global fullFilePath
     global scratchStr
     global fileName
@@ -330,12 +363,17 @@ def runQChem(procs:int, user:str) -> None:
     scratchStr += f'cp "{fullFilePath}" "{filePath}/{fileName}"\n'
     scratchStr += f'cd "{filePath}/{fileName}"\n\n'
     scratchStr += '# Run Q-Chem\n' 
-    scratchStr += f'/usr/bin/time -v qchem -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"\n\n'
+    scratchStr += f'/usr/bin/time -v qchem -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"'
+    if args.notify:
+        state = 'failed'
+        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    else:
+        scratchStr += '\n\n'
     scratchStr += '# Copy log file over\n' 
     scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}"\n\n'
     return
 
-def runNWChem(procs:int) -> None:
+def runNWChem(args:argparse.ArgumentParser.parse_args, procs:int) -> None:
     global fullFilePath
     global scratchStr
     global fileName
@@ -345,7 +383,12 @@ def runNWChem(procs:int) -> None:
     setupScratch()
     scratchStr += '# Run NWChem\n' 
     scratchStr += f'cd {scratchDir}\n' 
-    scratchStr += f'/usr/bin/time -v mpirun -n {procs+1} --oversubscribe $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"\n\n'
+    scratchStr += f'/usr/bin/time -v mpirun -n {procs+1} --oversubscribe $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"'
+    if args.notify:
+        state = 'failed'
+        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    else:
+        scratchStr += '\n\n'
     copyScratch()
     return
 
@@ -528,21 +571,21 @@ def main() -> None:
         scratchStr += f'#SBATCH --mem={mem}GB\n'
         scratchStr += f'#SBATCH --qos={qos}\n' if len(qos) > 0 else ''
         scratchStr += f'#SBATCH --partition={part}\n' if len(part) > 0 else ''
-        if args.email == True: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
+        if args.email: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
         if hostname == 'm3': scratchStr += f'#SBATCH --account={account}\n' 
         scratchStr += f'\nexport PROJECT="{account}"\n\n'
         
 
-        if notify == True: notifyCall('running')
+        if notify: notifyCall('running')
 
-        if program == 'gaussian': runGaussian()
+        if program == 'gaussian': runGaussian(args)
         if program == 'mopac': runMopac(args)
         if program == 'orca': runOrca(args)
         if program == 'psi4': runPsi4(args)
-        if program == 'qchem': runQChem(procs, user)
-        if program == 'nwchem': runNWChem(procs)
+        if program == 'qchem': runQChem(args, procs, user)
+        if program == 'nwchem': runNWChem(args, procs)
 
-        if notify == True: notifyCall('finished')
+        if notify and program != 'orca': notifyCall('finished')
 
         with open(f'{filePath}/{fileName}.slm', 'w') as slmFile:
             slmFile.write(scratchStr)
@@ -550,16 +593,16 @@ def main() -> None:
         sleep(0.2)
 
         depcommand = f'-d afterok:{args.dependency}' if args.dependency > 0 else ''
-        if args.submit == True:
+        if args.submit:
             command = f'cd "{filePath}"; sbatch {depcommand} "{filePath}/{fileName}.slm"'
             proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, executable='/bin/bash')
             output = proc.stdout.strip('\n')
             if output != "": print(output)
             output = proc.stderr.strip('\n')
             if output != "": print(output)
-            if notify == True: notifySubmit()
+            if notify: notifySubmit()
 
-        if args.touch == True and program != 'mopac': Path(f'{filePath}/{fileName}.out').touch()
+        if args.touch and program != 'mopac': Path(f'{filePath}/{fileName}.out').touch()
     return
 
 if __name__ == "__main__":
