@@ -373,7 +373,9 @@ def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args
                 mem = int(''.join([s for s in list(line.split()[1]) if s.isdigit()]))
         if program == 'qchem':
             if 'mem_total' in line.lower():
-                mem = int(round(int(line.split()[1])/1024, 0))
+                mem = int(line.split()[1])*1.15
+                print('QChem need a small memory headroom, allocating an extra 15%')
+                mem = int(round(mem/1024, 0))
         if program == 'nwchem':
             if 'memory' in line.lower() and 'total' in line.lower():
                 mem = int(line.split()[2])
