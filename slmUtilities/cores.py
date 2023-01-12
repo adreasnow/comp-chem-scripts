@@ -1,6 +1,8 @@
 #! python3
 import subprocess
 from tabulate import tabulate
+normalCores = 180
+partnerCores = 180
 
 
 def runbash(command:str) -> list[str]:
@@ -26,8 +28,8 @@ def main() -> None:
 
     print(f'\nCores used on running jobs:\n---------------------------')
     tableList = [['Queue', '#running', '#total', '#free'], 
-                ['partner', runningQueues["partner"], 144, 144-int(runningQueues["partner"])], 
-                ['normal', runningQueues["normal"], 144, 144-int(runningQueues["normal"])]]
+                ['partner', runningQueues["partner"], partnerCores, partnerCores-int(runningQueues["partner"])], 
+                ['normal', runningQueues["normal"], normalCores, normalCores-int(runningQueues["normal"])]]
 
     print(tabulate(tableList, headers='firstrow'))
 
