@@ -44,8 +44,7 @@ def identify_prog(lines:list[str]) -> prog:
             print('NWChem not implemented')
             exit()
             return prog.nwchem
-        else:
-            raise Exception("Program not identified")
+    raise Exception("Program not identified")
 
 def extract_electrons(lines:list[str], program:prog) -> int:
     if program == prog.orca:
