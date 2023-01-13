@@ -408,7 +408,8 @@ def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args
             if 'nprocs' in line.lower():
                 procs = int(line.split()[1])
             if 'maxcore' in line.lower():
-                mem = int(line.split()[1])
+                mem = int(line.split()[1])*1.05
+                print('ORCA is best with a small memory headroom, allocating an extra 5%')
         if program == 'psi4':
             if 'set_num_threads' in line.lower():
                 procs = int(line.split('(')[1].split(')')[0])
@@ -418,7 +419,6 @@ def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args
             if 'mem_total' in line.lower():
                 mem = int(line.split()[1])*1.15
                 print('QChem need a small memory headroom, allocating an extra 15%')
-                mem = int(round(mem/1024, 0))
         if program == 'nwchem':
             if 'memory' in line.lower() and 'total' in line.lower():
                 mem = int(line.split()[2])
@@ -436,9 +436,11 @@ def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args
         
 
     if program == 'orca':
-        mem = int((mem*procs)/1024)
+        mem = int(round((mem*procs)/1024, 0))
     elif program == 'nwchem':
         mem = int((mem*procs))
+    elif program == 'qchem':
+        mem = int(round(mem/1024, 0))
     
     mem = args.memory[0] if args.memory[0] != 0 else mem
     if mem == 0:
