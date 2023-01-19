@@ -597,11 +597,21 @@ def main() -> None:
         depcommand = f'-d afterok:{args.dependency}' if args.dependency > 0 else ''
         if args.submit:
             command = f'cd "{filePath}"; sbatch {depcommand} "{filePath}/{fileName}.slm"'
-            proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, executable='/bin/bash')
-            output = proc.stdout.strip('\n')
-            if output != "": print(output)
-            output = proc.stderr.strip('\n')
-            if output != "": print(output)
+            attempts = 0
+            while attempts < 3:
+                try:
+                    proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True, executable='/bin/bash')
+                    out = proc.stdout.strip('\n')
+                    err = proc.stderr.strip('\n')
+                    if err != "": 
+                        print(err)
+                        raise Exception('err')
+                    else:
+                        print(out)
+                        break
+                except Exception('err'):
+                    attempts += 1
+
             if notify: notifySubmit()
 
         if args.touch and program != 'mopac': Path(f'{filePath}/{fileName}.out').touch()
