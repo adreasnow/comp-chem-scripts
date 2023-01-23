@@ -18,6 +18,14 @@ def read_args() -> argparse.Namespace:
         )
     )
     parser.add_argument(
+        '-s',
+        '--state',
+        nargs=1,
+        default=[0],
+        type=int,
+        required=False
+    )
+    parser.add_argument(
         'files', 
         nargs=argparse.REMAINDER
     )
@@ -65,7 +73,7 @@ def extract_occ(lines:list[str], program:prog) -> list[float]:
                         break
     return occs
 
-def build_ref(electrons:int, occ:list[float]) -> list[float]:
+def build_ref(electrons:int, occ:list[float], state:int) -> list[float]:
     ref = []
     while electrons > 0:
         if electrons >= 2:
@@ -76,6 +84,16 @@ def build_ref(electrons:int, occ:list[float]) -> list[float]:
             electrons -= 1
     for i in range(len(occ)-len(ref)):
         ref += [0.]
+
+    if state == 1:
+        homo = 0
+        for count, occ in enumerate(ref):
+            if occ < 1.:
+                lumo = count
+                homo = count-1
+                break
+        ref[homo] -= 1.
+        ref[lumo] += 1.
     return ref
 
 def m_diag(occ_ref:list[float]|np.ndarray, occ_no:list[float]|np.ndarray) -> float:
@@ -92,12 +110,13 @@ def m_diag(occ_ref:list[float]|np.ndarray, occ_no:list[float]|np.ndarray) -> flo
 def main() -> None:
     args = read_args()
     for file in args.files:
+        state = args.state[0]
         with open(file, "r") as file:
             lines = file.readlines()
         program = identify_prog(lines)
         electrons = extract_electrons(lines, program)
         occ = extract_occ(lines, program)
-        ref = build_ref(electrons, occ)
+        ref = build_ref(electrons, occ, state)
         m = m_diag(ref, occ)
         print(m)
 
