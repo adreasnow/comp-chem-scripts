@@ -363,7 +363,7 @@ def runQChem(args:argparse.ArgumentParser.parse_args, procs:int, user:str) -> No
     scratchStr += f'cp "{fullFilePath}" "{filePath}/{fileName}"\n'
     scratchStr += f'cd "{filePath}/{fileName}"\n\n'
     scratchStr += '# Run Q-Chem\n' 
-    scratchStr += f'/usr/bin/time -v qchem -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"'
+    scratchStr += f'/usr/bin/time -v qchem -slurm -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"'
     if args.notify:
         state = 'failed'
         scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
