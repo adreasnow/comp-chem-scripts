@@ -277,14 +277,14 @@ def runOrca(args:argparse.ArgumentParser.parse_args) -> None:
 
 
     scratchStr += f'# Running ORCA job\n'
-    if orcaVersion == 5: scratchStr += f'source {project}/apps/orca_5.0.3/activate_orca.sh\n\n'
+    if orcaVersion == 5: scratchStr += f'source {project}/apps/orca_5.0.4/activate_orca.sh\n\n'
     if orcaVersion == 4: scratchStr += 'module unload orca/4.2.1\nmodule load orca/4.2.1-216\n\n'
 
     if args.projectdir == True:
         scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
         scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
         scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" > "{filePath}/{fileName}.out" 2>&1'
+        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" --mca pml ob1 --mca btl ^openib > "{filePath}/{fileName}.out" 2>&1'
         if args.notify:
             state = 'failed'
             scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
