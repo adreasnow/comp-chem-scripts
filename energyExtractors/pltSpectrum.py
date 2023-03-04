@@ -144,7 +144,7 @@ def plot(dicts: dict, eList: list[float], spectrumUnits: str, energyUnits: str,
         for i in eToPlot:
             plotList += [[inDictList[1]['e'], inDictList[1][i[0]], i[1], inDictList[0]]]
 
-    fig, ax = plt.subplots(1,1, figsize=(figW,figH))
+    fig, ax = plt.subplots(1, 1, figsize=(figW,figH))
     for i in plotList:
         ax.plot(i[0], i[1], label=f'{i[3]} - {i[2]}')
 
@@ -153,7 +153,7 @@ def plot(dicts: dict, eList: list[float], spectrumUnits: str, energyUnits: str,
     plotUnits = r'$eV$' if energyUnits == 'ev' else r'$nm$' if energyUnits == 'nm' else r'$cm^{-1}$'
     ax.set_xlabel(f'Energy ({plotUnits})')
     ax.legend()
-    if spectrumUnits == 'ev':
+    if spectrumUnits in ['ev', 'w']:
         ax.invert_xaxis()
     return plt.show()
 
@@ -166,9 +166,9 @@ def main():
         exit()
 
     if args.xrange == None:
-        xrange = [3.26, 1.77] if args.energyOut[0] == 'ev'\
-            else [380, 700]   if args.energyOut[0] == 'nm'\
-            else [26315, 14286]
+        xrange = [1.54, 6.19] if args.energyOut[0] == 'ev'\
+            else [200, 800] if args.energyOut[0] == 'nm'\
+            else [12421, 49926]
     else:
         xrange = args.xrange
 
