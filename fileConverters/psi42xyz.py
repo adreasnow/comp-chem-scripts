@@ -15,7 +15,7 @@ def hasNumbers(inputString):
 
 for filenum in range(1,len(sys.argv)):
     if sys.argv[filenum].endswith(".out"):
-        inp = runbash("sed -n -e '/Cartesian Geometry (in Angstrom)/,/--------/ p' " + str(sys.argv[filenum]))
+        inp = runbash("sed -n -e '/Geometry (in Angstrom)/,/--------/ p' " + str(sys.argv[filenum]))
         if inp != None:
 
             outfile = str(os.path.splitext(str(sys.argv[filenum]))[0]) + ".xyz"
