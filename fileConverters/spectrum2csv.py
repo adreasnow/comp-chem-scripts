@@ -126,7 +126,7 @@ def main():
     if args.total: elist += ['t']
     if args.fc: elist += ['fc']
     if args.ht: elist += ['ht']
-    if elist == []: elist = ['t']
+    if elist == []: elist = ['t', 'ht', 'fc']
 
     for file in args.files:
         spectrumDict = readSpectrum(file, args.energyIn[0], args.energyOut[0])
