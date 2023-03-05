@@ -2,7 +2,7 @@
 import subprocess
 from tabulate import tabulate
 import os
-normalCores = 180
+normalCores = 240
 partnerCores = 180
 
 
