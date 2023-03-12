@@ -6,7 +6,8 @@ import subprocess
 from datetime import datetime
 from time import sleep
 from pathlib import Path
-
+from dataclasses import dataclass
+from aenum import AutoEnum
 
 def read_args() -> argparse.ArgumentParser.parse_args:
     parser = argparse.ArgumentParser(
@@ -177,426 +178,414 @@ def read_args() -> argparse.ArgumentParser.parse_args:
     return parser.parse_args()
 
 
-def setupScratch() -> None:
-    global copy
-    global scratchStr
-    global scratchDir
-    global fullFilePath
-    global fileName
-    scratchStr += '# Setting up the scratch directory\n'
-    scratchStr += f'mkdir -p "{scratchDir}"'
-    scratchStr += f'\ncp "{fullFilePath}" "{scratchDir}"'
-    scratchStr += f'\ncd "{scratchDir}"\n'
-    for file in copy:
-        scratchStr += f'cp {os.path.abspath(file[0])} "{scratchDir}"\n'
-    scratchStr += '\n\n'
+def setupScratch(prop) -> None:
+    prop.scratchStr += '# Setting up the scratch directory\n'
+    prop.scratchStr += f'mkdir -p "{prop.scratchDir}"'
+    prop.scratchStr += f'\ncp "{prop.fullFilePath}" "{prop.scratchDir}"'
+    prop.scratchStr += f'\ncd "{prop.scratchDir}"\n'
+    for file in prop.args.copy:
+        prop.scratchStr += f'cp {os.path.abspath(file[0])} "{prop.scratchDir}"\n'
+    prop.scratchStr += '\n\n'
     return
 
-def copyScratch() -> None:
-    global scratchStr
-    global scratchDir
-    global filePath
-    global fileName
-    scratchStr += '# copying files from the scratch directory\n'
-    scratchStr += f'mv "{filePath}/{fileName}" "{filePath}/{fileName}.bak.{datetime.now().strftime("%d-%m-%Y-%H:%M:%S")}"\n'
-    scratchStr += f'cp -r "{scratchDir}" "{filePath}/{fileName}" && '
-    scratchStr += f'rm -rf "{scratchDir}"\n'
-    scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}/"\n\n'
+def copyScratch(prop) -> None:
+    prop.scratchStr += '# copying files from the scratch directory\n'
+    prop.scratchStr += f'mv "{prop.filePath}/{prop.fileName}" "{prop.filePath}/{prop.fileName}.bak.{datetime.now().strftime("%d-%m-%Y-%H:%M:%S")}"\n'
+    prop.scratchStr += f'cp -r "{prop.scratchDir}" "{prop.filePath}/{prop.fileName}" && '
+    prop.scratchStr += f'rm -rf "{prop.scratchDir}"\n'
+    prop.scratchStr += f'mv "{prop.filePath}/{prop.fileName}.out" "{prop.filePath}/{prop.fileName}/"\n\n'
     return
 
-def notifySubmit() -> None:
-    global fileName
-    global hostName
-    json = {'value1': fileName, 'value2': 'submitted', 'value3': hostName}
+def notifySubmit(prop) -> None:
+    json = {'value1': prop.fileName, 'value2': 'submitted', 'value3': prop.cluster.hostName}
     r = requests.post(f'https://maker.ifttt.com/trigger/{os.environ["JOBID"]}/with/key/{os.environ["JOBKEY"]}', json=json, headers={"Content-Type": "application/json"})
     return
 
-def notifyCall(state:str, log:str='') -> None:
-    global scratchStr
-    global fileName
-    global hostName
-    scratchStr += f'# notifying of {state} job\n'
-    scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+def notifyCall(state:str, prop) -> None:
+    prop.scratchStr += f'# notifying of {state} job\n'
+    prop.scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     return
 
-def runGaussian(args:argparse.ArgumentParser.parse_args) -> None:
-    global fileName
-    global fullFilePath
-    global filePath
-    global scratchStr
-    scratchStr += f'# Running Gaussian job\n'
-    scratchStr += f'module load gaussian/g16a03'
-    if args.notify:
+def runGaussian(prop) -> None:
+    prop.scratchStr += f'# Running Gaussian job\n'
+    prop.scratchStr += f'module load gaussian/g16a03'
+    if prop.notify:
         state = 'failed'
-        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     else:
-        scratchStr += '\n\n'
-    scratchStr += f'cat "{fullFilePath}" | G16 > "{filePath}/{fileName}.out" 2>&1\n\n'
+        prop.scratchStr += '\n\n'
+    prop.scratchStr += f'cat "{prop.fullFilePath}" | G16 > "{prop.filePath}/{prop.fileName}.out" 2>&1\n\n'
 
-def runMopac(args:argparse.ArgumentParser.parse_args) -> None:
-    global fullFilePath
-    global scratchStr
-    global scratchDir
-    global fileName
-    global hostName
-    scratchStr += f'# Running MOPAC job\n'
-    scratchStr += f'source /monfs00/projects/p2015120004/apps/mopac/activate_mopac.sh\n\n'
-    setupScratch()
-    if args.touch == True:
-        scratchStr += f'touch "{scratchDir}/{fileName}.out"\n'
-        scratchStr += f'ln -s "{scratchDir}/{fileName}.out" "{filePath}/{fileName}.out"\n'
-    scratchStr += f'/usr/bin/time -v mopac "{fileName}"'
-    if args.notify:
+def runMopac(prop) -> None:
+    prop.scratchStr += f'# Running MOPAC job\n'
+    prop.scratchStr += f'source /monfs00/projects/p2015120004/apps/mopac/activate_mopac.sh\n\n'
+    setupScratch(prop)
+    if prop.args.touch == True:
+        prop.scratchStr += f'touch "{prop.scratchDir}/{prop.fileName}.out"\n'
+        prop.scratchStr += f'ln -s "{prop.scratchDir}/{prop.fileName}.out" "{prop.filePath}/{prop.fileName}.out"\n'
+    prop.scratchStr += f'/usr/bin/time -v mopac "{prop.fileName}"'
+    if prop.notify:
         state = 'failed'
-        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     else:
-        scratchStr += '\n\n'
-    if args.touch == True: scratchStr += f'rm "{filePath}/{fileName}.out"\n'
-    copyScratch()
+        prop.scratchStr += '\n\n'
+    if prop.args.touch == True: prop.scratchStr += f'rm "{prop.filePath}/{prop.fileName}.out"\n'
+    copyScratch(prop)
     return
 
 
-def runOrca(args:argparse.ArgumentParser.parse_args) -> None:
-    global scratchStr
-    global project
-    global filePath
-    global fileName
-    global hostName
-
-    if float(args.version) in [4.0, 5.0]:
-        orcaVersion = int(args.version)
+def runOrca(prop) -> None:
+    if float(prop.args.version) in [4.0, 5.0]:
+        orcaVersion = int(prop.args.version)
         print(f'Using ORCA {orcaVersion}')
     else:
-        if float(args.version) == 0.0:
+        if float(prop.args.version) == 0.0:
             orcaVersion = 5
             print(f'Using ORCA {orcaVersion}')
         else:
-            print(f'ORCA verison {args.version} not recognised')
+            print(f'ORCA verison {prop.args.version} not recognised')
             orcaVersion = 5
             print(f'Using ORCA {orcaVersion}')
 
 
-    scratchStr += f'# Running ORCA job\n'
-    if orcaVersion == 5: scratchStr += f'source {project}/apps/orca_5.0.4/activate_orca.sh\n\n'
-    if orcaVersion == 4: scratchStr += 'module unload orca/4.2.1\nmodule load orca/4.2.1-216\n\n'
+    prop.scratchStr += f'# Running ORCA job\n'
+    if orcaVersion == 5: prop.scratchStr += f'source {prop.cluster.project}/apps/orca_5.0.4/activate_orca.sh\n\n'
+    if orcaVersion == 4: prop.scratchStr += 'module unload orca/4.2.1\nmodule load orca/4.2.1-216\n\n'
 
-    if args.projectdir == True:
-        scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
-        scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
-        scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{filePath}/{fileName}.out" 2>&1'
-        if args.notify:
+    if prop.args.projectdir == True:
+        prop.scratchStr += f'mkdir -p "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'cp "{prop.filePath}/{prop.fileName}.inp" "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'cd "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{prop.fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{prop.filePath}/{prop.fileName}.out" 2>&1'
+        if prop.notify:
             state = 'failed'
-            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
-            scratchStr += '\n\n'
-        if args.notify: notifyCall('finished')
+            prop.scratchStr += '\n\n'
+        if prop.notify: notifyCall('finished')
     else:
-        setupScratch()
-        scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{filePath}/{fileName}.out" 2>&1'
-        if args.notify:
+        setupScratch(prop)
+        prop.scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{prop.fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{prop.filePath}/{prop.fileName}.out" 2>&1'
+        if prop.notify:
             state = 'failed'
-            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
-            scratchStr += '\n\n'
-        if args.notify: notifyCall('finished')
-        copyScratch()
+            prop.scratchStr += '\n\n'
+        if prop.notify: notifyCall('finished')
+        copyScratch(prop)
     return
 
-def runPsi4(args:argparse.ArgumentParser.parse_args) -> None:
-    global scratchStr
-    global project
-    global filePath
-    global fileName
-    global homePath
-    global scratchDir
-    scratchStr += f'# Running Psi4 job\n'
-    if float(args.version) in [1.3, 1.4, 1.5, 1.6]:
-        psi4Version = float(args.version)
+def runPsi4(prop) -> None:
+    prop.scratchStr += f'# Running Psi4 job\n'
+    if float(prop.args.version) in [1.3, 1.4, 1.5, 1.6]:
+        psi4Version = float(prop.args.version)
         print(f'Using Psi4 {psi4Version}')
     else:
-        if float(args.version) == 0.0:
+        if float(prop.args.version) == 0.0:
             psi4Version = 1.6
             print(f'Using Psi4 {psi4Version}')
         else:
-            print(f'Psi4 verison {args.version} not recognised')
+            print(f'Psi4 verison {prop.args.version} not recognised')
             psi4Version = 1.6
             print(f'Using Psi4 {psi4Version}')
     
-    if psi4Version == 1.3: scratchStr += 'module load psi4/v1.3.2\n\n'
-    if psi4Version in [1.4, 1.5, 1.6]: scratchStr += f'source {project}/apps/psi4-{psi4Version}/activate_psi4_job.sh\n\n'
+    if psi4Version == 1.3: prop.scratchStr += 'module load psi4/v1.3.2\n\n'
+    if psi4Version in [1.4, 1.5, 1.6]: prop.scratchStr += f'source {prop.cluster.project}/apps/psi4-{psi4Version}/activate_psi4_job.sh\n\n'
 
-    scratchStr += f'export PSIPATH=$PSIPATH:{homePath}/basis\n'
-    if args.projectdir == True:
-        scratchStr += f'export PSI_SCRATCH="{filePath}/{fileName}"\n'
-        scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
-        scratchStr += f'cp "{filePath}/{fileName}.inp" "{filePath}/{fileName}"\n'
-        scratchStr += f'cd "{filePath}/{fileName}"\n'
-        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{fileName}.out" 2>&1'
-        if args.notify:
+    prop.scratchStr += f'export PSIPATH=$PSIPATH:{prop.cluster.homePath}/basis\n'
+    if prop.args.projectdir == True:
+        prop.scratchStr += f'export PSI_SCRATCH="{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'mkdir -p "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'cp "{prop.filePath}/{prop.fileName}.inp" "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'cd "{prop.filePath}/{prop.fileName}"\n'
+        prop.scratchStr += f'/usr/bin/time -v psi4 -i "{prop.fileName}.in" -o "{prop.fileName}.out" 2>&1'
+        if prop.notify:
             state = 'failed'
-            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
-            scratchStr += '\n\n'
+            prop.scratchStr += '\n\n'
     else:
-        scratchStr += f'export PSI_SCRATCH="{scratchDir}"\n\n'
-        setupScratch()
-        scratchStr += f'/usr/bin/time -v psi4 -i "{fileName}.in" -o "{filePath}/{fileName}.out" 2>&1'
-        if args.notify:
+        prop.scratchStr += f'export PSI_SCRATCH="{prop.scratchDir}"\n\n'
+        setupScratch(prop)
+        prop.scratchStr += f'/usr/bin/time -v psi4 -i "{prop.fileName}.in" -o "{prop.filePath}/{prop.fileName}.out" 2>&1'
+        if prop.notify:
             state = 'failed'
-            scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
-            scratchStr += '\n\n'
-        copyScratch()
+            prop.scratchStr += '\n\n'
+        copyScratch(prop)
 
     return
 
-def runQChem(args:argparse.ArgumentParser.parse_args, procs:int, user:str) -> None:
-    global fullFilePath
-    global scratchStr
-    global fileName
-    scratchStr += '\n# Set up environment\n' 
-    scratchStr += 'module load qchem/6.0.2\n\n'
-    scratchStr += f'export QCSCRATCH=/mnt/lustre/scratch/{user}/qchem\n'
-    scratchStr += '# Setting up the scratch directory\n' 
-    scratchStr += f'mkdir -p "{filePath}/{fileName}"\n'
-    scratchStr += f'cp "{fullFilePath}" "{filePath}/{fileName}"\n'
-    scratchStr += f'cd "{filePath}/{fileName}"\n\n'
-    scratchStr += '# Run Q-Chem\n' 
-    scratchStr += f'/usr/bin/time -v qchem -slurm -nt {procs} "{fileName}.inp" "{filePath}/{fileName}.out"'
-    if args.notify:
+def runQChem(prop) -> None:
+    prop.scratchStr += '\n# Set up environment\n' 
+    prop.scratchStr += 'module load qchem/6.0.2\n\n'
+    prop.scratchStr += f'export QCSCRATCH=/mnt/lustre/scratch/{prop.cluster.user}/qchem\n'
+    prop.scratchStr += '# Setting up the scratch directory\n' 
+    prop.scratchStr += f'mkdir -p "{prop.filePath}/{prop.fileName}"\n'
+    prop.scratchStr += f'cp "{prop.fullFilePath}" "{prop.filePath}/{prop.fileName}"\n'
+    prop.scratchStr += f'cd "{prop.filePath}/{prop.fileName}"\n\n'
+    prop.scratchStr += '# Run Q-Chem\n' 
+    prop.scratchStr += f'/usr/bin/time -v qchem -slurm -nt {prop.procs} "{prop.fileName}.inp" "{prop.filePath}/{prop.fileName}.out"'
+    if prop.notify:
         state = 'failed'
-        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     else:
-        scratchStr += '\n\n'
-    scratchStr += '# Copy log file over\n' 
-    scratchStr += f'mv "{filePath}/{fileName}.out" "{filePath}/{fileName}"\n\n'
+        prop.scratchStr += '\n\n'
+    prop.scratchStr += '# Copy log file over\n' 
+    prop.scratchStr += f'mv "{prop.filePath}/{prop.fileName}.out" "{prop.filePath}/{prop.fileName}"\n\n'
     return
 
-def runNWChem(args:argparse.ArgumentParser.parse_args, procs:int) -> None:
+def runNWChem(prop) -> None:
     global fullFilePath
     global scratchStr
     global fileName
     global scratchDir
-    scratchStr += '\n# Set up environment\n' 
-    scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_latest.sh\n'
-    setupScratch()
-    scratchStr += '# Run NWChem\n' 
-    scratchStr += f'cd {scratchDir}\n' 
-    scratchStr += f'/usr/bin/time -v mpirun -n {procs+1} --oversubscribe $BINDIR/nwchem "{fileName}.nw" > "{filePath}/{fileName}.out"'
-    if args.notify:
+    prop.scratchStr += '\n# Set up environment\n' 
+    prop.scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_7.2.0.sh\n'
+    setupScratch(prop)
+    prop.scratchStr += '# Run NWChem\n' 
+    prop.scratchStr += f'cd {prop.scratchDir}\n' 
+    prop.scratchStr += f'/usr/bin/time -v mpirun -n {prop.procs+1} --oversubscribe $BINDIR/nwchem "{prop.fileName}.nw" > "{prop.filePath}/{prop.fileName}.out"'
+    if prop.notify:
         state = 'failed'
-        scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
     else:
-        scratchStr += '\n\n'
-    copyScratch()
+        prop.scratchStr += '\n\n'
+    copyScratch(prop)
     return
 
-def extractParams(file:str, program:str, args:argparse.ArgumentParser.parse_args) -> None:
-    with open(file, 'r') as f:
-        lines = f.readlines()
-    mem = 0
-    procs = 0
-    
-    for line in lines:
-        if program == 'gaussian':
-            if 'nprocs' in line.lower():
-                procs = int(line.split('=')[1])
-            if 'mem' in line.lower():
-                mem = int(''.join([s for s in list(line.split('=')[1]) if s.isdigit()]))
-        if program == 'orca':
-            if 'nprocs' in line.lower():
-                procs = int(line.split()[1])
-            if 'maxcore' in line.lower():
-                mem = int(line.split()[1])*1.05
-                print('ORCA is best with a small memory headroom, allocating an extra 5%')
-        if program == 'psi4':
-            if 'set_num_threads' in line.lower():
-                procs = int(line.split('(')[1].split(')')[0])
-            if 'memory' in line.lower():
-                mem = int(''.join([s for s in list(line.split()[1]) if s.isdigit()]))
-        if program == 'qchem':
-            if 'mem_total' in line.lower():
-                mem = int(line.split()[1])*1.15
-                print('QChem need a small memory headroom, allocating an extra 15%')
-        if program == 'nwchem':
-            if 'memory' in line.lower() and 'total' in line.lower():
-                mem = int(line.split()[2])
-        if program == 'mopac':
-            if 'threads' in line.lower():
-                for i in line.split():
-                    if 'threads' in i:
-                        procs = int(i.split('=')[1])
+@dataclass
+class Cluster():
+    def __init__(self) -> None:
+        self.hostname = os.uname().nodename
+        if self.hostname.startswith('monarch'):
+            self.host = self._cluster.MONARCH
+        elif self.hostname.startswith('gadi-'):
+            self.host = self._cluster.GADI
+        elif self.hostname.startswith('m3'):
+            self.host = self._cluster.M3
+            print('Gadi not implemented!\nExiting...')
+            exit()
 
-    procs = args.cpus[0] if args.cpus != [0] else procs
+        if self.host == self._cluster.GADI:
+            self.hostName = 'Gadi'
+            self.user = os.getlogin()
+            self.account = 'k96'
+            self.scratch = f'/home/{self.user}/{self.account}_scratch/{self.user}'
+            self.project = f'/g/data/{self.account}'
+            self.homePath = f'{self.project}/{self.user}'
+        elif self.host == self._cluster.MONARCH:
+            self.hostName = 'MonARCH'
+            self.user = os.getlogin()
+            self.scratch = f'/home/{self.user}/scratch'
+            self.account = 'p2015120004'
+            self.project = f'/mnt/lustre/projects/{self.account}'
+            self.homePath = f'{self.project}/{self.user}'
+        elif self.host == self._cluster.M3:
+            self.host = 'm3'
+            self.hostName = 'M3'
+            self.user = os.getlogin()
+            self.account = 'sn29'
+            self.scratch = f'/scratch/{self.account}/{self.user}'
+            self.project = f'/g/data/{self.account}/{self.user}'
+            self.homePath = f'{self.project}/{self.user}'
+        else:
+            print('Cluster not recognised.\nExiting...')
+            exit()
+        return
 
-    if procs == 0:
-        procs = 1 if program not in ['qchem', 'nwchem'] else 16
-        print(f'Number of cores not identified, using {procs} default')
+    class _cluster(AutoEnum):
+        GADI = 'Gadi'
+        MONARCH = 'MonARCH'
+        M3 = 'M3' 
+
+class Program(AutoEnum):
+        ORCA = "ORCA"
+        QCHEM = 'Q-Chem'
+        MOPAC = 'Mopac'
+        NWCHEM = 'NWChem'
+        GAUSSIAN = 'Gaussian'
+        PSI4 = 'Psi4'
+
+@dataclass
+class Properties():
+    args: dict
+    cluster: Cluster
+    copy: bool = None
+    notify: bool = None
+    short: bool = None
+    touch: bool = None
+    scratchStr: str = ''
+    fullFilePath: str = ''
+    program: Program = None
+    filePath: str = ''
+    fileName: str = ''
+    scratchDir: str = ''
+    procs: int = None
+    mem: int = None
+    tpn: int = None
+    timestring: str = ''
+    part: str = ''
+    qos: str = ''
+
+    def __post__init__(self):
+        for arg in self.args.files:
+            if arg.startswith('-'):
+                print(f'{arg} is not a recognised flag.\nExiting..')
+                exit() 
+        self.copy = self.args.copy, 
+        self.notify = self.prop.notify
+        self.short = self.prop.notify
+        self.touch = self.args.touch
+        if self.args.local == True:
+            self.cluster.scratch = '/mnt/scratch'
+        self.setupTime()
+
+    def setupTime(self) -> None:
+        if self.short:
+            if self.cluster.host == Cluster._cluster.MONARCH:
+                self.timestring = '24:00:00'
+            elif self.cluster.host == Cluster._cluster.M3:
+                self.timestring == '00:30:00'
+                self.qos = f'shortq,{self.args.qos[0]}' if len(self.args.qos[0]) > 0 else 'shortq'
+                self.part = f'shortq,{self.args.partition[0]}' if len(self.args.partition[0]) > 0 else 'shortq'
+        elif self.args.days[0] > 0:
+            self.timestring = f'{self.args.days[0]*24}:00:00'
+        elif self.args.hours[0] > 0:
+            self.timestring = f'{self.args.hours[0]:02}:00:00'
+        else:
+            self.timestring = f'24:00:00'
+
+        if self.cluster.host == Cluster._cluster.MONARCH:
+            self.part = f'comp,{self.args.partition[0]}' if len(self.args.partition[0]) > 0 else 'comp'
+            self.part = f'{self.part},short' if int(self.timestring.split(':')[0]) <= 24 else self.part
+            self.qos = 'partner' if self.args.normal == False else self.args.qos[0] if len(self.args.qos[0]) > 0 else ''
+        return
+
+    def extractParams(self) -> None:
+        with open(self.fullFilePath, 'r') as f:
+            lines = f.readlines()
+        self.mem = 0
+        self.procs = 0
         
+        for line in lines:
+            if self.program == Program.GAUSSIAN:
+                if 'nprocs' in line.lower():
+                    self.procs = int(line.split('=')[1])
+                if 'mem' in line.lower():
+                    self.mem = int(''.join([s for s in list(line.split('=')[1]) if s.isdigit()]))
+            if self.program == Program.ORCA:
+                if 'nprocs' in line.lower():
+                    self.procs = int(line.split()[1])
+                if 'maxcore' in line.lower():
+                    self.mem = int(line.split()[1])*1.05
+                    print('ORCA is best with a small memory headroom, allocating an extra 5%')
+                    self.mem = int(round((self.mem*self.procs)/1024, 0))
+            if self.program == Program.PSI4:
+                if 'set_num_threads' in line.lower():
+                    self.procs = int(line.split('(')[1].split(')')[0])
+                if 'memory' in line.lower():
+                    self.mem = int(''.join([s for s in list(line.split()[1]) if s.isdigit()]))
+            if self.program == Program.QCHEM:
+                if 'mem_total' in line.lower():
+                    self.mem = int(line.split()[1])*1.15
+                    print('QChem need a small memory headroom, allocating an extra 15%')
+                    self.mem = int(round(self.mem/1024, 0))
+            if self.program == Program.NWCHEM:
+                if 'memory' in line.lower() and 'total' in line.lower():
+                    self.mem = int(line.split()[2])
+                    self.mem = int((self.mem*self.procs))
+            if self.program == Program.MOPAC:
+                if 'threads' in line.lower():
+                    for i in line.split():
+                        if 'threads' in i:
+                            self.procs = int(i.split('=')[1])
 
-    if program == 'orca':
-        mem = int(round((mem*procs)/1024, 0))
-    elif program == 'nwchem':
-        mem = int((mem*procs))
-    elif program == 'qchem':
-        mem = int(round(mem/1024, 0))
-    
-    mem = args.memory[0] if args.memory[0] != 0 else mem
-    if mem == 0:
-        print('Memory not identified, using 32GB default')
-        mem = 32
+        self.procs = self.args.cpus[0] if self.args.cpus != [0] else self.procs
 
-    tpn = args.ntpn[0] if args.ntpn[0] != 0 else procs
-
-    return procs, mem, tpn
-
-def setupTime(args:argparse.ArgumentParser.parse_args, host:str) -> tuple[str, str, str]:
-    global timestring
-    global qos
-
-    if args.short == True:
-        if host == 'monarch':
-            timestring = '24:00:00'
-        elif host == 'm3':
-            timestring == '00:30:00'
-            qos = f'shortq,{args.qos[0]}' if len(args.qos[0]) > 0 else 'shortq'
-            part = f'shortq,{args.partition[0]}' if len(args.partition[0]) > 0 else 'shortq'
-    elif args.days[0] > 0:
-        timestring = f'{args.days[0]*24}:00:00'
-    elif args.hours[0] > 0:
-        timestring = f'{args.hours[0]:02}:00:00'
-    else:
-        timestring = f'24:00:00'
-
-    if host == 'monarch':
-        part = f'comp,{args.partition[0]}' if len(args.partition[0]) > 0 else 'comp'
-        part = f'{part},short' if int(timestring.split(':')[0]) <= 24 else part
-        qos = 'partner' if args.normal == False else args.qos[0] if len(args.qos[0]) > 0 else ''
-    
-    return timestring, part, qos
-
+        if self.procs == 0:
+            self.procs = 1 if self.program not in [Program.QCHEM, Program.NWCHEM] else 16
+            print(f'Number of cores not identified, using {self.procs} default')
+            
+        self.mem = self.args.memory[0] if self.args.memory[0] != 0 else self.mem
+        if self.mem == 0:
+            print('Memory not identified, using 32GB default')
+            self.mem = 32
+        self.tpn = self.args.ntpn[0] if self.args.ntpn[0] != 0 else self.procs
+        return
 
 def main() -> None:
-    global scratchStr
-    global scratchDir
-    global fullFilePath
-    global filePath
-    global fileName
-    global copy
-    global project
-    global homePath
-    global host
-    global hostName
+    fileEXTs = {'mop': Program.MOPAC,
+                'inp': Program.ORCA,
+                'gjf': Program.GAUSSIAN,
+                'com': Program.GAUSSIAN,
+                '.in': Program.PSI4,
+                '.nw': Program.NWCHEM}
 
-    fileEXTs = {'mop': 'mopac', 'inp': 'orca', 'gjf': 'gaussian', 'com': 'gaussian', '.in': 'psi4', '.nw': 'nwchem'}
-    hostname = os.uname().nodename
-
-    if hostname.startswith('monarch'):
-        host = 'monarch'
-        hostName = 'MonARCH'
-        user = os.getlogin()
-        scratch = f'/home/{user}/scratch'
-        account = 'p2015120004'
-        project = f'/mnt/lustre/projects/{account}'
-        homePath = f'{project}/{user}'
-    elif hostname.startswith('m3'):
-        host = 'm3'
-        hostName = 'M3'
-        user = os.getlogin()
-        account = 'sn29'
-        scratch = f'/scratch/{account}/{user}'
-        project = f'/g/data/{account}/{user}'
-        homePath = f'{project}/{user}'
-    elif hostname.startswith('gadi-'):
-        host = 'gadi'
-        hostName = 'Gadi'
-        user = os.getlogin()
-        account = 'k96'
-        scratch = f'/home/{user}/{account}_scratch/{user}'
-        project = f'/g/data/{account}'
-        homePath = f'{project}/{user}'
-        print('Gadi not implemented!\nExiting...')
-        exit()
-    else:
-        print('Cluster not recognised.\nExiting...')
-        exit()
+    prop = Properties(read_args(), Cluster())
 
 
-    args = read_args()
-    for arg in args.files:
-        if arg.startswith('-'):
-            print(f'{arg} is not a recognised flag.\nExiting..')
-            exit() 
-    notify = args.notify
-    copy = args.copy
-    if args.local == True:
-        scratch = '/mnt/scratch'
-
-
-
-    for infile in args.files:
-        scratchStr = '#!/bin/bash\n'
+    for infile in prop.args.files:
+        prop.scratchStr = '#!/bin/bash\n'
         try:
             if os.path.isfile(infile) == False:
                 raise Exception()
         except:
             print(f'input file "{infile}" not found.\nNot processing.')
             continue
-        fullFilePath = os.path.abspath(infile)
+        prop.fullFilePath = os.path.abspath(infile)
         try:
-            program = fileEXTs[infile[-3:]]
+            prop.program = fileEXTs[infile[-3:]]
         except:
             print('File type not recognised.\nNot processing.')
             continue
 
         #if .inp, then check if qchem
-        if program in ['orca', 'psi4']:
-            with open(fullFilePath, 'r') as f:
+        if prop.program in [Program.ORCA, Program.PSI4]:
+            with open(prop.fullFilePath, 'r') as f:
                 lines = f.readlines()
             for line in lines:
                 if '$rem' in line:
-                    program = 'qchem'
+                    prop.program = Program.QCHEM
 
-        filePath = '/'.join(fullFilePath.split('/')[0:-1])
-        fileName = infile.split('/')[-1].split('.')[0]
+        prop.filePath = '/'.join(prop.fullFilePath.split('/')[0:-1])
+        prop.fileName = infile.split('/')[-1].split('.')[0]
     
-        scratchDir = f'{scratch}/{fileName}'
+        prop.scratchDir = f'{prop.cluster.scratch}/{prop.fileName}'
+        prop.extractParams()
 
-        procs, mem, tpn = extractParams(fullFilePath, program, args)
-        timestring, part, qos = setupTime(args, host)
-
-        scratchStr += f'#SBATCH --time={timestring}\n'
-        scratchStr += f'#SBATCH --ntasks={procs}\n'
-        scratchStr += f'#SBATCH --cpus-per-task=1\n'
-        scratchStr += f'#SBATCH --ntasks-per-node={tpn}\n'
-        scratchStr += f'#SBATCH --mem={mem}GB\n'
-        scratchStr += f'#SBATCH --qos={qos}\n' if len(qos) > 0 else ''
-        scratchStr += f'#SBATCH --partition={part}\n' if len(part) > 0 else ''
-        if args.email: scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
-        if hostname == 'm3': scratchStr += f'#SBATCH --account={account}\n' 
-        scratchStr += f'\nexport PROJECT="{account}"\n\n'
+        prop.scratchStr += f'#SBATCH --time={prop.timestring}\n'
+        prop.scratchStr += f'#SBATCH --ntasks={prop.procs}\n'
+        prop.scratchStr += f'#SBATCH --cpus-per-task=1\n'
+        prop.scratchStr += f'#SBATCH --ntasks-per-node={prop.tpn}\n'
+        prop.scratchStr += f'#SBATCH --mem={prop.mem}GB\n'
+        prop.scratchStr += f'#SBATCH --qos={prop.qos}\n' if len(prop.qos) > 0 else ''
+        prop.scratchStr += f'#SBATCH --partition={prop.part}\n' if len(prop.part) > 0 else ''
+        if prop.args.email: prop.scratchStr += f'#SBATCH --mail-type=ALL --mail-user={os.environ["EMAIL"]}\n'
+        if prop.cluster.host == Cluster._cluster.M3 : prop.scratchStr += f'#SBATCH --account={prop.cluster.account}\n' 
+        prop.scratchStr += f'\nexport PROJECT="{prop.cluster.account}"\n\n'
         
 
-        if notify: notifyCall('running')
+        if prop.notify: notifyCall('running')
 
-        if program == 'gaussian': runGaussian(args)
-        if program == 'mopac': runMopac(args)
-        if program == 'orca': runOrca(args)
-        if program == 'psi4': runPsi4(args)
-        if program == 'qchem': runQChem(args, procs, user)
-        if program == 'nwchem': runNWChem(args, procs)
+        if prop.program == Program.GAUSSIAN: runGaussian(prop)
+        if prop.program == Program.MOPAC: runMopac(prop)
+        if prop.program == Program.ORCA: runOrca(prop)
+        if prop.program == Program.PSI4: runPsi4(prop)
+        if prop.program == Program.QCHEM: runQChem(prop)
+        if prop.program == Program.NWCHEM: runNWChem(prop)
 
-        if notify and program != 'orca': notifyCall('finished')
+        if prop.notify and prop.program != Program.ORCA: notifyCall('finished')
 
-        with open(f'{filePath}/{fileName}.slm', 'w') as slmFile:
-            slmFile.write(scratchStr)
+        with open(f'{prop.filePath}/{prop.fileName}.slm', 'w') as slmFile:
+            slmFile.write(prop.scratchStr)
 
         sleep(0.2)
 
-        depcommand = f'-d afterok:{args.dependency}' if args.dependency > 0 else ''
-        if args.submit:
-            command = f'cd "{filePath}"; sbatch {depcommand} "{filePath}/{fileName}.slm"'
+        depcommand = f'-d afterok:{prop.args.dependency}' if prop.args.dependency > 0 else ''
+        if prop.args.submit:
+            command = f'cd "{prop.filePath}"; sbatch {depcommand} "{prop.filePath}/{prop.fileName}.slm"'
             attempts = 0
             while attempts < 3:
                 try:
@@ -612,9 +601,9 @@ def main() -> None:
                 except Exception('err'):
                     attempts += 1
 
-            if notify: notifySubmit()
+            if prop.notify: notifySubmit()
 
-        if args.touch and program != 'mopac': Path(f'{filePath}/{fileName}.out').touch()
+        if prop.args.touch and prop.program != Program.MOPAC: Path(f'{prop.filePath}/{prop.fileName}.out').touch()
     return
 
 if __name__ == "__main__":
