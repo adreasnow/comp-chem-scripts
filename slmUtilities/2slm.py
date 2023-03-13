@@ -342,10 +342,13 @@ def runNWChem(prop) -> None:
     global fileName
     global scratchDir
     prop.scratchStr += '\n# Set up environment\n' 
-    prop.scratchStr += 'source /mnt/lustre/projects/p2015120004/apps/nwchem/activate_nwchem_7.2.0.sh\n'
+    prop.scratchStr += f'source {prop.cluster.project}/apps/nwchem/activate_nwchem_7.2.0.sh\n'
     setupScratch(prop)
     prop.scratchStr += '# Run NWChem\n' 
     prop.scratchStr += f'cd {prop.scratchDir}\n' 
+    prop.scratchStr += f'export OMP_NUM_THREADS {prop.procs}\n' 
+    prop.scratchStr += f'export ARMCI_NETWORK=OPENIB\n'
+    prop.scratchStr += f'export ARMCI_OPENIB_DEVICE mlx4_0\n' 
     prop.scratchStr += f'/usr/bin/time -v mpirun -n {prop.procs+1} --oversubscribe $BINDIR/nwchem "{prop.fileName}.nw" > "{prop.filePath}/{prop.fileName}.out"'
     if prop.notify:
         state = 'failed'
@@ -363,10 +366,10 @@ class Cluster():
             self.host = self._cluster.MONARCH
         elif self.hostname.startswith('gadi-'):
             self.host = self._cluster.GADI
-        elif self.hostname.startswith('m3'):
-            self.host = self._cluster.M3
             print('Gadi not implemented!\nExiting...')
             exit()
+        elif self.hostname.startswith('m3'):
+            self.host = self._cluster.M3
 
         if self.host == self._cluster.GADI:
             self.hostName = 'Gadi'
@@ -388,7 +391,7 @@ class Cluster():
             self.user = os.getlogin()
             self.account = 'sn29'
             self.scratch = f'/scratch/{self.account}/{self.user}'
-            self.project = f'/g/data/{self.account}/{self.user}'
+            self.project = f'/projects/{self.account}'
             self.homePath = f'{self.project}/{self.user}'
         else:
             print('Cluster not recognised.\nExiting...')
@@ -440,7 +443,6 @@ class Properties():
         self.touch = self.args.touch
         if self.args.local == True:
             self.cluster.scratch = '/mnt/scratch'
-        self.setupTime()
 
     def setupTime(self) -> None:
         if self.short:
@@ -451,6 +453,7 @@ class Properties():
                 self.qos = f'shortq,{self.args.qos[0]}' if len(self.args.qos[0]) > 0 else 'shortq'
                 self.part = f'shortq,{self.args.partition[0]}' if len(self.args.partition[0]) > 0 else 'shortq'
         elif self.args.days[0] > 0:
+            print('test')
             self.timestring = f'{self.args.days[0]*24}:00:00'
         elif self.args.hours[0] > 0:
             self.timestring = f'{self.args.hours[0]:02}:00:00'
@@ -481,7 +484,6 @@ class Properties():
                 if 'maxcore' in line.lower():
                     self.mem = int(line.split()[1])*1.05
                     print('ORCA is best with a small memory headroom, allocating an extra 5%')
-                    self.mem = int(round((self.mem*self.procs)/1024, 0))
             if self.program == Program.PSI4:
                 if 'set_num_threads' in line.lower():
                     self.procs = int(line.split('(')[1].split(')')[0])
@@ -491,11 +493,9 @@ class Properties():
                 if 'mem_total' in line.lower():
                     self.mem = int(line.split()[1])*1.15
                     print('QChem need a small memory headroom, allocating an extra 15%')
-                    self.mem = int(round(self.mem/1024, 0))
             if self.program == Program.NWCHEM:
                 if 'memory' in line.lower() and 'total' in line.lower():
                     self.mem = int(line.split()[2])
-                    self.mem = int((self.mem*self.procs))
             if self.program == Program.MOPAC:
                 if 'threads' in line.lower():
                     for i in line.split():
@@ -503,6 +503,13 @@ class Properties():
                             self.procs = int(i.split('=')[1])
 
         self.procs = self.args.cpus[0] if self.args.cpus != [0] else self.procs
+
+        if self.program == Program.ORCA:
+            self.mem = int(round((self.mem*self.procs)/1024, 0))
+        if self.program == Program.NWCHEM:
+            self.mem = int((self.mem*self.procs))
+        if self.program == Program.QCHEM:
+            self.mem = int(round(self.mem/1024, 0))
 
         if self.procs == 0:
             self.procs = 1 if self.program not in [Program.QCHEM, Program.NWCHEM] else 16
@@ -554,6 +561,7 @@ def main() -> None:
     
         prop.scratchDir = f'{prop.cluster.scratch}/{prop.fileName}'
         prop.extractParams()
+        prop.setupTime()
 
         prop.scratchStr += f'#SBATCH --time={prop.timestring}\n'
         prop.scratchStr += f'#SBATCH --ntasks={prop.procs}\n'
