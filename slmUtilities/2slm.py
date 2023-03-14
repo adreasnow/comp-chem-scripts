@@ -453,7 +453,6 @@ class Properties():
                 self.qos = f'shortq,{self.args.qos[0]}' if len(self.args.qos[0]) > 0 else 'shortq'
                 self.part = f'shortq,{self.args.partition[0]}' if len(self.args.partition[0]) > 0 else 'shortq'
         elif self.args.days[0] > 0:
-            print('test')
             self.timestring = f'{self.args.days[0]*24}:00:00'
         elif self.args.hours[0] > 0:
             self.timestring = f'{self.args.hours[0]:02}:00:00'
