@@ -262,7 +262,7 @@ def runOrca(prop) -> None:
             prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
             prop.scratchStr += '\n\n'
-        if prop.notify: notifyCall('finished')
+        if prop.notify: notifyCall('finished', prop)
     else:
         setupScratch(prop)
         prop.scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{prop.fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{prop.filePath}/{prop.fileName}.out" 2>&1'
@@ -271,7 +271,7 @@ def runOrca(prop) -> None:
             prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
         else:
             prop.scratchStr += '\n\n'
-        if prop.notify: notifyCall('finished')
+        if prop.notify: notifyCall('finished', prop)
         copyScratch(prop)
     return
 
@@ -362,6 +362,7 @@ def runNWChem(prop) -> None:
 class Cluster():
     def __init__(self) -> None:
         self.hostname = os.uname().nodename
+        print(f'Hostname: {self.hostname}')
         if self.hostname.startswith('monarch'):
             self.host = self._cluster.MONARCH
         elif self.hostname.startswith('gadi-'):
@@ -432,14 +433,14 @@ class Properties():
     part: str = ''
     qos: str = ''
 
-    def __post__init__(self):
+    def __post_init__(self):
         for arg in self.args.files:
             if arg.startswith('-'):
                 print(f'{arg} is not a recognised flag.\nExiting..')
                 exit() 
         self.copy = self.args.copy, 
-        self.notify = self.prop.notify
-        self.short = self.prop.notify
+        self.notify = self.args.notify
+        self.short = self.args.short
         self.touch = self.args.touch
         if self.args.local == True:
             self.cluster.scratch = '/mnt/scratch'
@@ -574,7 +575,7 @@ def main() -> None:
         prop.scratchStr += f'\nexport PROJECT="{prop.cluster.account}"\n\n'
         
 
-        if prop.notify: notifyCall('running')
+        if prop.notify: notifyCall('running', prop)
 
         if prop.program == Program.GAUSSIAN: runGaussian(prop)
         if prop.program == Program.MOPAC: runMopac(prop)
@@ -583,7 +584,7 @@ def main() -> None:
         if prop.program == Program.QCHEM: runQChem(prop)
         if prop.program == Program.NWCHEM: runNWChem(prop)
 
-        if prop.notify and prop.program != Program.ORCA: notifyCall('finished')
+        if prop.notify and prop.program != Program.ORCA: notifyCall('finished', prop)
 
         with open(f'{prop.filePath}/{prop.fileName}.slm', 'w') as slmFile:
             slmFile.write(prop.scratchStr)
@@ -608,7 +609,7 @@ def main() -> None:
                 except Exception('err'):
                     attempts += 1
 
-            if prop.notify: notifySubmit()
+            if prop.notify: notifySubmit(prop)
 
         if prop.args.touch and prop.program != Program.MOPAC: Path(f'{prop.filePath}/{prop.fileName}.out').touch()
     return
