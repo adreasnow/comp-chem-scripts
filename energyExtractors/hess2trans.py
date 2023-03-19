@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 from tabulate import tabulate
 from pathlib import Path
+from enum import Enum
 
 def read_args() -> argparse.ArgumentParser.parse_args:
     parser = argparse.ArgumentParser(
@@ -11,8 +12,8 @@ def read_args() -> argparse.ArgumentParser.parse_args:
         )
     )
     parser.add_argument(
-        "-g",
-        "--ge",
+        "-i",
+        "--ie",
         help="Ground state energy if not supplied in hessian",
         nargs=1,
         default=0.0,
@@ -20,8 +21,8 @@ def read_args() -> argparse.ArgumentParser.parse_args:
         required=False,
     )
     parser.add_argument(
-        "-e",
-        "--ee",
+        "-f",
+        "--fe",
         help="Ground state energy if not supplied in hessian",
         nargs=1,
         default=0.0,
@@ -34,6 +35,10 @@ def read_args() -> argparse.ArgumentParser.parse_args:
         nargs=argparse.REMAINDER
     )
     return parser.parse_args()
+
+class Which(Enum):
+    init = 'init'
+    final = 'final'
 
 
 def zpve(freq: np.array) -> float:
@@ -56,7 +61,7 @@ def transitions(init_freqs: np.array, init_e: float, final_freqs: np.array, fina
     return outEnergies
 
 
-def readHess(file:Path, args) -> tuple[float, float, np.array]:
+def readHess(file:Path, args, which: Which) -> tuple[float, float, np.array]:
     with open(file, 'r') as f:
         lines = f.readlines()
 
@@ -73,7 +78,12 @@ def readHess(file:Path, args) -> tuple[float, float, np.array]:
         exit()
 
     eOut = float(lines[eLine])
-    if eOut == 0.0 and args.ge == 0.0:
+
+    if which == Which.init and args.ie != 0.0:
+        eOut = args.ie
+    elif which == Which.final and args.fe != 0.0:
+        eOut = args.fe
+    elif eOut == 0.0 and ((which == Which.init and args.ie == 0.0) or (which == Which.final and args.fe == 0.0)):
         print(f'Hessian {file.stem} does not contain energy and none was supplied in the arguments')
         exit()
 
@@ -98,7 +108,7 @@ def buildTable(vtList) -> str:
                      floatfmt=(".3f"),
                      colalign=("right", "left"))
 
-    
+
 def main() -> None:
     args = read_args()
 
@@ -107,8 +117,8 @@ def main() -> None:
         exit()
     (init_file, final_file) = args.files
     if init_file.suffix == '.hess':
-        init_e, init_zpve, init_freq = readHess(init_file, args)
-        final_e, final_zpve, final_freq = readHess(final_file, args)
+        init_e, init_zpve, init_freq = readHess(init_file, args, Which.init)
+        final_e, final_zpve, final_freq = readHess(final_file, args, Which.final)
     else:
         print(f'File type {init_file.suffix} not supported')
     vtList = transitions(init_freq, init_e, final_freq, final_e)
