@@ -40,6 +40,11 @@ class Which(Enum):
     init = 'init'
     final = 'final'
 
+class Program(Enum):
+    orca = 'orca'
+    qchem = 'qchem'
+    none = 'None'
+
 
 def zpve(freq: np.array) -> float:
     c = 2.9979e8
@@ -73,7 +78,7 @@ def readHess(file:Path, args, which: Which) -> tuple[float, float, np.array]:
         elif '$vibrational_frequencies' in line:
             vLine = count + 1
     
-    if eLine == 0  and vLine == 0:
+    if eLine == 0  or vLine == 0:
         print(f'Hessian file {file} could not be read')
         exit()
 
@@ -95,6 +100,50 @@ def readHess(file:Path, args, which: Which) -> tuple[float, float, np.array]:
         if freq != 0.0:
             freqs = np.append(freqs, freq)
 
+    return eOut, zpve(np.array(freqs)), freqs
+
+def readOut(file:Path, args, which: Which) -> tuple[float, float, np.array]:
+    prog = Program.none
+    with open(file, 'r') as f:
+        for line in f.readlines():
+            if '* O   R   C   A *' in line:
+                prog = Program.orca
+                break
+    if prog == Program.orca:
+        return readORCA(file, args, which)
+    else:
+        print('Program not recognised')
+        exit()
+
+def readORCA(file:Path, args, which: Which) -> tuple[float, float, np.array]:
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    eOut = 0.0
+    vLine = 0
+    for count, line in enumerate(lines):
+        if 'FINAL SINGLE POINT ENERGY' in line:
+            eOut = float(line.split()[4])
+        elif 'VIBRATIONAL FREQUENCIES' in line:
+            vLine = count + 5
+    
+    if eOut == 0.0  and vLine == 0:
+        print(f'ORCA output file {file} could not be read')
+        exit()
+
+    if which == Which.init and args.ie != 0.0:
+        eOut = args.ie
+    elif which == Which.final and args.fe != 0.0:
+        eOut = args.fe
+
+    freqs = np.array([0.0])
+    for line in lines[vLine:]:
+        try:
+            freq = float(line.split()[1])
+            if freq != 0.0:
+                freqs = np.append(freqs, freq)
+        except IndexError:
+            break
     return eOut, zpve(np.array(freqs)), freqs
 
 def buildTable(vtList) -> str:
@@ -119,6 +168,9 @@ def main() -> None:
     if init_file.suffix == '.hess':
         init_e, init_zpve, init_freq = readHess(init_file, args, Which.init)
         final_e, final_zpve, final_freq = readHess(final_file, args, Which.final)
+    elif init_file.suffix == '.out':
+        init_e, init_zpve, init_freq = readOut(init_file, args, Which.init)
+        final_e, final_zpve, final_freq = readOut(final_file, args, Which.final)
     else:
         print(f'File type {init_file.suffix} not supported')
     vtList = transitions(init_freq, init_e, final_freq, final_e)
