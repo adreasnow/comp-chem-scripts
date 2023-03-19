@@ -76,6 +76,7 @@ def transitions(init_freqs: np.array, init_e: float, final_freqs: np.array, fina
 
 
 def readHess(file:Path, args, which: Which) -> tuple[float, float, np.array]:
+    print('Treating as ORCA hessian file')
     with open(file, 'r') as f:
         lines = f.readlines()
 
@@ -118,8 +119,15 @@ def readOut(file:Path, args, which: Which) -> tuple[float, float, np.array]:
             if '* O   R   C   A *' in line:
                 prog = Program.orca
                 break
+            if 'Q-Chem, Inc., Pleasanton, CA' in line:
+                prog = Program.qchem
+                break
     if prog == Program.orca:
+        print('Treating as ORCA output file')
         return readORCA(file, args, which)
+    if prog == Program.qchem:
+        print('Treating as QChem output file')
+        return readQChem(file, args, which)
     else:
         print('Program not recognised')
         exit()
@@ -153,6 +161,48 @@ def readORCA(file:Path, args, which: Which) -> tuple[float, float, np.array]:
                 freqs = np.append(freqs, freq)
         except IndexError:
             break
+    return eOut, zpve(np.array(freqs)), freqs
+
+def readQChem(file:Path, args, which: Which) -> tuple[float, float, np.array]:
+    with open(file, 'r') as f:
+        lines = f.readlines()
+
+    eStartLine = 0
+    eEndLine = 0
+    eOut = 0.0
+    vLine = 0
+    for count, line in enumerate(lines):
+        if 'Desired analytical derivatives not available' in line:
+            eStartLine = count
+        elif ' # Starting finite difference calculation #' in line:
+            eEndLine = count
+        elif 'VIBRATIONAL ANALYSIS' in line:
+            vLine = count + 10
+
+    for line in lines[eStartLine:eEndLine]:
+        if 'Total energy in the final basis set =' in line:
+            eOut = float(line.split()[8])
+    
+    if eOut == 0.0  and vLine == 0:
+        print(f'QChem output file {file} could not be read')
+        exit()
+
+    if which == Which.init and args.ie != 0.0:
+        eOut = args.ie
+    elif which == Which.final and args.fe != 0.0:
+        eOut = args.fe
+
+    freqs = np.array([0.0])
+    for line in lines[vLine:]:
+        if 'Frequency:' in line:
+            splitline = line.split()[1:]
+            for freqStr in splitline:
+                freq = float(freqStr)
+                if freq != 0.0:
+                    freqs = np.append(freqs, freq)
+        if 'STANDARD THERMODYNAMIC QUANTITIES' in line:
+            break
+
     return eOut, zpve(np.array(freqs)), freqs
 
 def buildTable(vtList: np.array, rows: int) -> str:
