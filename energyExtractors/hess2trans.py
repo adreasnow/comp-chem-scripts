@@ -12,9 +12,18 @@ def read_args() -> argparse.ArgumentParser.parse_args:
         )
     )
     parser.add_argument(
+        "-r",
+        "--rows",
+        help="Number of rows to display in the table",
+        nargs=1,
+        default=15,
+        type=int,
+        required=False,
+    )
+    parser.add_argument(
         "-i",
         "--ie",
-        help="Ground state energy if not supplied in hessian",
+        help="Initial state energy if not supplied in hessian",
         nargs=1,
         default=0.0,
         type=float,
@@ -23,7 +32,7 @@ def read_args() -> argparse.ArgumentParser.parse_args:
     parser.add_argument(
         "-f",
         "--fe",
-        help="Ground state energy if not supplied in hessian",
+        help="Final state energy if not supplied in hessian",
         nargs=1,
         default=0.0,
         type=float,
@@ -146,17 +155,23 @@ def readORCA(file:Path, args, which: Which) -> tuple[float, float, np.array]:
             break
     return eOut, zpve(np.array(freqs)), freqs
 
-def buildTable(vtList) -> str:
+def buildTable(vtList: np.array, rows: int) -> str:
     names = []
     for i in range(len(vtList)):
         names += [f'0-{i}']
-    return tabulate({'Transition': names,
-                     'Energy (eV)': vtList
-                     },
-                     headers="keys",
-                     floatfmt=(".3f"),
-                     colalign=("right", "left"))
+    tableDict = {}
+    align = ()
+    headers = []
+    count = 1
+    for i in range(0, len(vtList), rows):
+        tableDict[f'T-{count}'] = names[i:i+rows] 
+        tableDict[f'ΔE(eV)-{count}'] = vtList[i:i+rows] 
+        align += ("right", "left")
+        headers += ['T', 'ΔE(eV)']
+        count += 1
 
+    
+    return tabulate(tableDict, headers=headers, floatfmt=(".3f"), colalign=align)
 
 def main() -> None:
     args = read_args()
@@ -175,7 +190,7 @@ def main() -> None:
         print(f'File type {init_file.suffix} not supported')
     vtList = transitions(init_freq, init_e, final_freq, final_e)
 
-    print(buildTable(vtList))
+    print(buildTable(vtList, args.rows))
 
 if __name__ == "__main__":
     main()
