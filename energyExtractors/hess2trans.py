@@ -217,7 +217,7 @@ def buildTable(vtList: np.array, rows: int) -> str:
         tableDict[f'T-{count}'] = names[i:i+rows] 
         tableDict[f'ΔE(eV)-{count}'] = vtList[i:i+rows] 
         align += ("right", "left")
-        headers += ['T', 'ΔE(eV)']
+        headers += ['T', 'ΔE (eV)']
         count += 1
 
     
