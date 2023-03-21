@@ -199,11 +199,13 @@ def copyScratch(prop) -> None:
 def notifySubmit(prop) -> None:
     json = {'value1': prop.fileName, 'value2': 'submitted', 'value3': prop.cluster.hostName}
     r = requests.post(f'https://maker.ifttt.com/trigger/{os.environ["JOBID"]}/with/key/{os.environ["JOBKEY"]}', json=json, headers={"Content-Type": "application/json"})
+    r = requests.post(f'https://api.adreasnow.com/id/{prop.fileName}/submitted/{prop.cluster.hostName}/')
     return
 
 def notifyCall(state:str, prop) -> None:
     prop.scratchStr += f'# notifying of {state} job\n'
     prop.scratchStr += 'curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+    prop.scratchStr += f'curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n'
     return
 
 def runGaussian(prop) -> None:
