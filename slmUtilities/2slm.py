@@ -228,7 +228,8 @@ def runMopac(prop) -> None:
     prop.scratchStr += f'/usr/bin/time -v mopac "{prop.fileName}"'
     if prop.notify:
         state = 'failed'
-        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+        prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
     else:
         prop.scratchStr += '\n\n'
     if prop.args.touch == True: prop.scratchStr += f'rm "{prop.filePath}/{prop.fileName}.out"\n'
@@ -261,7 +262,8 @@ def runOrca(prop) -> None:
         prop.scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{prop.fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{prop.filePath}/{prop.fileName}.out" 2>&1'
         if prop.notify:
             state = 'failed'
-            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+            prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
         else:
             prop.scratchStr += '\n\n'
         if prop.notify: notifyCall('finished', prop)
@@ -270,7 +272,8 @@ def runOrca(prop) -> None:
         prop.scratchStr += f'/usr/bin/time -v $ORCA_ROOT/orca "{prop.fileName}.inp" "--mca pml ob1 --mca btl ^openib" > "{prop.filePath}/{prop.fileName}.out" 2>&1'
         if prop.notify:
             state = 'failed'
-            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+            prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
         else:
             prop.scratchStr += '\n\n'
         if prop.notify: notifyCall('finished', prop)
@@ -303,7 +306,8 @@ def runPsi4(prop) -> None:
         prop.scratchStr += f'/usr/bin/time -v psi4 -i "{prop.fileName}.in" -o "{prop.fileName}.out" 2>&1'
         if prop.notify:
             state = 'failed'
-            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+            prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
         else:
             prop.scratchStr += '\n\n'
     else:
@@ -312,7 +316,8 @@ def runPsi4(prop) -> None:
         prop.scratchStr += f'/usr/bin/time -v psi4 -i "{prop.fileName}.in" -o "{prop.filePath}/{prop.fileName}.out" 2>&1'
         if prop.notify:
             state = 'failed'
-            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+            prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+            prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
         else:
             prop.scratchStr += '\n\n'
         copyScratch(prop)
@@ -331,7 +336,8 @@ def runQChem(prop) -> None:
     prop.scratchStr += f'/usr/bin/time -v qchem -slurm -nt {prop.procs} "{prop.fileName}.inp" "{prop.filePath}/{prop.fileName}.out"'
     if prop.notify:
         state = 'failed'
-        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+        prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
     else:
         prop.scratchStr += '\n\n'
     prop.scratchStr += '# Copy log file over\n' 
@@ -348,13 +354,15 @@ def runNWChem(prop) -> None:
     setupScratch(prop)
     prop.scratchStr += '# Run NWChem\n' 
     prop.scratchStr += f'cd {prop.scratchDir}\n' 
-    prop.scratchStr += f'export OMP_NUM_THREADS {prop.procs}\n' 
-    prop.scratchStr += f'export ARMCI_NETWORK=OPENIB\n'
-    prop.scratchStr += f'export ARMCI_OPENIB_DEVICE mlx4_0\n' 
-    prop.scratchStr += f'/usr/bin/time -v mpirun -n {prop.procs+1} --oversubscribe $BINDIR/nwchem "{prop.fileName}.nw" > "{prop.filePath}/{prop.fileName}.out"'
+    prop.scratchStr += f'export OMP_NUM_THREADS={prop.procs}\n'
+    prop.scratchStr += 'export OMP_STACKSIZE=4G\n'
+    prop.scratchStr += 'ulimit -s unlimited\n'
+
+    prop.scratchStr += f'/usr/bin/time -v mpirun -n {prop.procs} --mca pml ob1 --mca btl ^openib $BINDIR/nwchem "{prop.fileName}.nw" > "{prop.filePath}/{prop.fileName}.out"'
     if prop.notify:
         state = 'failed'
-        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null\n'
+        prop.scratchStr += '|| curl -s -X POST -H "Content-Type: application/json" -d \'{"value1": "\'`echo $SLURM_JOB_NAME | cut -d\'.\' -f 1`\'" , "value2": "' + state + '", "value3": "' + prop.cluster.hostName + '"}\' https://maker.ifttt.com/trigger/$JOBID/with/key/$JOBKEY > /dev/null'
+        prop.scratchStr += f'; curl -s -X POST https://api.adreasnow.com/id/{prop.fileName}/{state}/{prop.cluster.hostName}/\n
     else:
         prop.scratchStr += '\n\n'
     copyScratch(prop)
