@@ -1,3 +1,6 @@
 {
     "jupyter.jupyterServerType": "local"
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#ff9500"
+    }
 }
